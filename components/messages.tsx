@@ -68,9 +68,16 @@ function PureMessages({
         <ConversationContent className="flex flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
           {messages.length === 0 && <Greeting />}
           
-          {/* AJ STUDIOZ Branding */}
+          {/* AJ STUDIOZ Branding with Logo */}
           <div className="flex justify-center items-center py-2 text-sm text-muted-foreground">
-            Powered by <span className="ml-1 font-semibold">AJ STUDIOZ</span>
+            <div className="flex items-center gap-2">
+              <img 
+                src="https://z-cdn-media.chatglm.cn/files/797f27fe-c65b-4e25-91cd-3e0c6688287e_aj%20logo.jpg?auth_key=1791563173-34991f6fcb414a528e5e52039239c636-0-de0ec96ab994aea2993ad06289321950"
+                alt="AJ STUDIOZ Logo"
+                className="h-6 w-6 rounded"
+              />
+              <span>Powered by <span className="font-semibold">AJ STUDIOZ</span></span>
+            </div>
           </div>
 
           {messages.map((message, index) => (
