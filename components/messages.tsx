@@ -67,6 +67,11 @@ function PureMessages({
       <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6">
         <ConversationContent className="flex flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
           {messages.length === 0 && <Greeting />}
+          
+          {/* AJ STUDIOZ Branding */}
+          <div className="flex justify-center items-center py-2 text-sm text-muted-foreground">
+            Powered by <span className="ml-1 font-semibold">AJ STUDIOZ</span>
+          </div>
 
           {messages.map((message, index) => (
             <PreviewMessage
