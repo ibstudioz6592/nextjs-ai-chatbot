@@ -33,8 +33,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 setOpenMobile(false);
               }}
             >
+              <img 
+                src="https://z-cdn-media.chatglm.cn/files/797f27fe-c65b-4e25-91cd-3e0c6688287e_aj%20logo.jpg?auth_key=1791563048-edd2ea9218184d0d8544bdc29df7fc85-0-974a018f298683a7cdae4b7f33d8cfd8"
+                alt="AJ STUDIOZ Logo"
+                className="h-8 w-8 rounded-md"
+              />
               <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
-                Chatbot
+                AJ STUDIOZ
               </span>
             </Link>
             <Tooltip>
