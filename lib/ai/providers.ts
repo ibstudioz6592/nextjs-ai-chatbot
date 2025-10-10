@@ -2,12 +2,12 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-  LanguageModelV1,
+  LanguageModel,
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
 // Create a custom language model for your Lynxa API
-const createLynxaModel = (modelId: string): LanguageModelV1 => {
+const createLynxaModel = (modelId: string): LanguageModel => {
   return {
     specificationVersion: "v1",
     provider: "lynxa",
