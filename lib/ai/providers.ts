@@ -3,7 +3,6 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
   LanguageModel,
-  LanguageModelV2CallOptions,
   LanguageModelV2Content,
   LanguageModelV2FinishReason,
   LanguageModelV2Usage,
@@ -12,6 +11,14 @@ import {
   SharedV2ProviderMetadata,
 } from "ai";
 import { isTestEnvironment } from "../constants";
+
+// Define a custom interface for call options if needed
+interface LynxaCallOptions {
+  prompt: LanguageModelV2Prompt;
+  maxTokens?: number;
+  temperature?: number;
+  topP?: number;
+}
 
 const createLynxaModel = (modelId: string): LanguageModel => {
   return {
@@ -22,7 +29,7 @@ const createLynxaModel = (modelId: string): LanguageModel => {
     supportedUrlProtocols: [],
     supportedImageFormats: [],
     supportedUseCases: [],
-    doGenerate: async (params: LanguageModelV2CallOptions): Promise<{
+    doGenerate: async (params: any): Promise<{
       content: LanguageModelV2Content[];
       finishReason: LanguageModelV2FinishReason;
       usage: LanguageModelV2Usage;
@@ -31,6 +38,11 @@ const createLynxaModel = (modelId: string): LanguageModel => {
       response?: unknown;
       warnings: LanguageModelV2CallWarning[];
     }> => {
+      // Validate environment variable
+      if (!process.env.LYNXA_API_KEY) {
+        throw new Error("LYNXA_API_KEY environment variable is not set");
+      }
+
       const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
         method: "POST",
         headers: {
@@ -41,7 +53,7 @@ const createLynxaModel = (modelId: string): LanguageModel => {
           model: "lynxa-pro",
           max_tokens: params.maxTokens || 1024,
           stream: false,
-          messages: params.prompt.map((msg) => ({
+          messages: params.prompt.map((msg: any) => ({
             role: msg.role,
             content: msg.content,
           })),
@@ -67,7 +79,6 @@ const createLynxaModel = (modelId: string): LanguageModel => {
         ? [{ type: "text", text: choice.message.content }]
         : [];
 
-      // Ensure usage object includes totalTokens
       const usage: LanguageModelV2Usage = {
         inputTokens: result.usage?.prompt_tokens || 0,
         outputTokens: result.usage?.completion_tokens || 0,
@@ -93,7 +104,12 @@ const createLynxaModel = (modelId: string): LanguageModel => {
         response: undefined,
       };
     },
-    doStream: async (params: LanguageModelV2CallOptions) => {
+    doStream: async (params: any) => {
+      // Validate environment variable
+      if (!process.env.LYNXA_API_KEY) {
+        throw new Error("LYNXA_API_KEY environment variable is not set");
+      }
+
       const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
         method: "POST",
         headers: {
@@ -104,7 +120,7 @@ const createLynxaModel = (modelId: string): LanguageModel => {
           model: "lynxa-pro",
           max_tokens: params.maxTokens || 1024,
           stream: true,
-          messages: params.prompt.map((msg) => ({
+          messages: params.prompt.map((msg: any) => ({
             role: msg.role,
             content: msg.content,
           })),
