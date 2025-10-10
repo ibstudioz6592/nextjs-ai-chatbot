@@ -32,17 +32,21 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9.12.3 # Matches your packageManager: "pnpm@9.12.3"
-          run_install: false # Prevent auto-install, we'll run it manually
+          run_install: false # We'll run pnpm install manually
+
+      - name: Verify pnpm installation
+        run: pnpm --version # Confirm pnpm is installed
 
       - name: Install dependencies and update lockfile
         run: pnpm install --no-frozen-lockfile
         env:
           PNPM_HEADLESS: true # Optional: Faster installs in CI
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Required for your build
 
       - name: Run build
         run: pnpm run build
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Required for your build (lib/ai/providers.ts)
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Ensure API key is available
 
       - name: Commit updated pnpm-lock.yaml
         run: |
