@@ -9,7 +9,7 @@ import { isTestEnvironment } from "../constants";
 // Create a custom language model for your Lynxa API
 const createLynxaModel = (modelId: string): LanguageModel => {
   return {
-    specificationVersion: "v1",
+    specificationVersion: "v2",
     provider: "lynxa",
     modelId: modelId,
     defaultObjectGenerationMode: "json",
@@ -43,13 +43,6 @@ const createLynxaModel = (modelId: string): LanguageModel => {
       const result = await response.json();
       
       return {
-        text: result.choices[0]?.message?.content || "",
-        usage: {
-          promptTokens: result.usage?.prompt_tokens || 0,
-          completionTokens: result.usage?.completion_tokens || 0,
-          totalTokens: result.usage?.total_tokens || 0,
-        },
-        finishReason: result.choices[0]?.finish_reason || "stop",
         rawCall: {
           rawPrompt: params.prompt,
           rawSettings: {
@@ -59,8 +52,16 @@ const createLynxaModel = (modelId: string): LanguageModel => {
             top_p: params.topP,
           },
         },
-        rawResponse: result,
+        finishReason: result.choices[0]?.finish_reason || "stop",
+        usage: {
+          promptTokens: result.usage?.prompt_tokens || 0,
+          completionTokens: result.usage?.completion_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0,
+        },
         warnings: [],
+        content: result.choices[0]?.message?.content ? 
+          [{ type: "text", text: result.choices[0].message.content }] : 
+          [],
       };
     },
     doStream: async (params) => {
@@ -146,7 +147,6 @@ const createLynxaModel = (modelId: string): LanguageModel => {
             top_p: params.topP,
           },
         },
-        rawResponse: {},
         warnings: [],
       };
     },
