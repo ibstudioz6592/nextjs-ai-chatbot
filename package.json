@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "tsx lib/db/migrate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "npx ultracite@latest check",
     "format": "npx ultracite@latest fix",
@@ -92,7 +92,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
-    "@playwright/test": "^1.50.1",
+    "@opentelemetry/instrumentation": "^0.46.0",
+    "@opentelemetry/sdk-logs": "^0.46.0",
+    "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/typography": "^0.5.15",
     "@types/d3-scale": "^4.0.8",
