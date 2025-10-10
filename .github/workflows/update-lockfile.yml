@@ -1,0 +1,36 @@
+name: Update pnpm-lock.yaml
+
+on:
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # Or '20' to match your Vercel Node version
+          cache: 'pnpm'
+
+      - name: Install pnpm@9.12.3
+        run: npm install -g pnpm@9.12.3
+
+      - name: Delete old lockfile and node_modules
+        run: rm -rf node_modules pnpm-lock.yaml
+
+      - name: Install dependencies and regenerate lockfile
+        run: pnpm install
+
+      - name: Commit and push updated pnpm-lock.yaml
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pnpm-lock.yaml
+          git diff --staged --quiet || git commit -m "Regenerate pnpm-lock.yaml to match package.json"
+          git push
