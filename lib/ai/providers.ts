@@ -1,60 +1,31 @@
-// lib/ai/providers.ts
-import { type Provider, extractReasoningMiddleware, type LanguageModel, wrapLanguageModel } from 'ai';
-import { isTestEnvironment } from '../constants';
-import { createLynxa } from './lynxa-provider';
+import { groq } from "@ai-sdk/groq";
+import {
+  customProvider,
+  extractReasoningMiddleware,
+  wrapLanguageModel,
+} from "ai";
 
-// Initialize Lynxa provider with API key
-const lynxa = createLynxa({
-  apiKey: process.env.LYNXA_API_KEY || '',
+const languageModels = {
+  "kimi-k2": groq("moonshotai/kimi-k2-instruct"),
+  "meta-llama/llama-4-scout-17b-16e-instruct": groq(
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+  ),
+  "llama-3.1-8b-instant": groq("llama-3.1-8b-instant"),
+  "deepseek-r1-distill-llama-70b": wrapLanguageModel({
+    middleware: extractReasoningMiddleware({
+      tagName: "think",
+    }),
+    model: groq("deepseek-r1-distill-llama-70b"),
+  }),
+  "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
+};
+
+export const model = customProvider({
+  languageModels,
 });
 
-export const myProvider: Provider = {
-  languageModel: (modelId: string): LanguageModel => {
-    if (isTestEnvironment) {
-      const {
-        artifactModel,
-        chatModel,
-        reasoningModel,
-        titleModel,
-      } = require('./models.mock');
+export type modelID = keyof typeof languageModels;
 
-      switch (modelId) {
-        case 'chat-model':
-          return chatModel;
-        case 'chat-model-reasoning':
-          return reasoningModel;
-        case 'title-model':
-          return titleModel;
-        case 'artifact-model':
-          return artifactModel;
-        default:
-          return chatModel;
-      }
-    }
+export const MODELS = Object.keys(languageModels);
 
-    const lynxaModel = lynxa.create('lynxa-pro');
-    
-    switch (modelId) {
-      case 'chat-model-reasoning':
-        return wrapLanguageModel({
-          model: lynxaModel,
-          middleware: extractReasoningMiddleware({ tagName: 'think' })
-        });
-      default:
-        return lynxaModel;
-    }
-  },
-  textEmbeddingModel: () => {
-    throw new Error('Text embedding model not supported');
-  },
-  imageModel: () => {
-    throw new Error('Image model not supported');
-  }
-};
-          model: groq('groq/compound'),
-          middleware: extractReasoningMiddleware({ tagName: 'think' }),
-        }),
-        'title-model': groq('llama-3.3-70b-versatile'),
-        'artifact-model': groq('llama-3.3-70b-versatile'),
-      },
-    });
+export const defaultModel: modelID = "kimi-k2";
