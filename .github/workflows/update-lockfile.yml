@@ -1,4 +1,4 @@
-name: Update pnpm-lock.yaml
+name: Update Dependencies and Lockfile
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
     branches: [main]
     paths:
       - 'package.json'
-      - 'pnpm-lock.yaml'
+      'pnpm-lock.yaml'
   workflow_dispatch: # Allows manual triggering
 
 jobs:
@@ -20,42 +20,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Required for pushing changes
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.12.2' # Matches your package.json engines: ">=20.12.2"
-          cache: 'pnpm' # Caches pnpm store for faster installs
+          node-version: '20.12.2'
+          cache: 'pnpm'
 
-      - name: Install pnpm
+      - name: Install dependencies
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.3 # Matches your packageManager: "pnpm@9.12.3"
-          run_install: false # We'll run pnpm install manually
-
-      - name: Verify pnpm installation
-        run: pnpm --version # Confirm pnpm is installed
-
-      - name: Install dependencies and update lockfile
-        run: pnpm install --no-frozen-lockfile
+          version: 9.12.3
+          cache: 'pnpm'
+        run: pnpm install --frozen-lockfile
         env:
-          PNPM_HEADLESS: true # Optional: Faster installs in CI
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Required for your build
+          PNPM_HEADLESS: true
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Verify lockfile consistency
+        run: pnpm install --frozen-lockfile
+        env:
+          PNPM_NAME: pnpm@9.12.3
+          PNPM_HEADLESS: true
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       - name: Run build
         run: pnpm run build
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Ensure API key is available
+          GROQ_API_KEY: $pnpm install --frozen-lockfile
 
-      - name: Commit updated pnpm-lock.yaml
+      - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add pnpm-lock.yaml
-          if git diff --staged --quiet; then
-            echo "No changes to pnpm-lock.yaml"
-          else
-            git commit -m "chore: update pnpm-lock.yaml [skip ci]"
-            git push
-          fi
+          git add .
+          git commit -m "chore: update dependencies and lockfile"
+          git push
