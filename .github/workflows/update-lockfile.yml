@@ -25,18 +25,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Matches your engines: ">=20.12.2"
-          cache: 'pnpm'
+          node-version: '20.12.2' # Matches your package.json engines: ">=20.12.2"
+          cache: 'pnpm' # Caches pnpm store for faster installs
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.3 # Matches your packageManager
+          version: 9.12.3 # Matches your packageManager: "pnpm@9.12.3"
+          run_install: false # Prevent auto-install, we'll run it manually
 
       - name: Install dependencies and update lockfile
         run: pnpm install --no-frozen-lockfile
         env:
-          PNPM_HEADLESS: true # Optional: Faster installs for CI
+          PNPM_HEADLESS: true # Optional: Faster installs in CI
+
+      - name: Run build
+        run: pnpm run build
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # Required for your build (lib/ai/providers.ts)
 
       - name: Commit updated pnpm-lock.yaml
         run: |
@@ -49,6 +55,3 @@ jobs:
             git commit -m "chore: update pnpm-lock.yaml [skip ci]"
             git push
           fi
-
-      - name: Run build
-        run: pnpm run build
