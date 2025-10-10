@@ -3,10 +3,16 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
   LanguageModel,
+  LanguageModelV2CallOptions,
+  LanguageModelV2Content,
+  LanguageModelV2FinishReason,
+  LanguageModelV2Usage,
+  LanguageModelV2CallWarning,
+  LanguageModelV2Prompt,
+  SharedV2ProviderMetadata,
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
-// Create a custom language model for your Lynxa API
 const createLynxaModel = (modelId: string): LanguageModel => {
   return {
     specificationVersion: "v2",
@@ -16,7 +22,15 @@ const createLynxaModel = (modelId: string): LanguageModel => {
     supportedUrlProtocols: [],
     supportedImageFormats: [],
     supportedUseCases: [],
-    doGenerate: async (params) => {
+    doGenerate: async (params: LanguageModelV2CallOptions): Promise<{
+      content: LanguageModelV2Content[];
+      finishReason: LanguageModelV2FinishReason;
+      usage: LanguageModelV2Usage;
+      providerMetadata?: SharedV2ProviderMetadata | undefined;
+      request?: unknown;
+      response?: unknown;
+      warnings: LanguageModelV2CallWarning[];
+    }> => {
       const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
         method: "POST",
         headers: {
@@ -41,10 +55,28 @@ const createLynxaModel = (modelId: string): LanguageModel => {
       }
 
       const result = await response.json();
-      
+
+      // Validate API response structure
+      if (!result.choices || !Array.isArray(result.choices) || !result.choices[0]) {
+        throw new Error("Invalid Lynxa API response: missing or invalid choices");
+      }
+
+      const choice = result.choices[0];
+      const finishReason: LanguageModelV2FinishReason = choice.finish_reason || "stop";
+      const content: LanguageModelV2Content[] = choice.message?.content
+        ? [{ type: "text", text: choice.message.content }]
+        : [];
+
+      // Ensure usage object includes totalTokens
+      const usage: LanguageModelV2Usage = {
+        inputTokens: result.usage?.prompt_tokens || 0,
+        outputTokens: result.usage?.completion_tokens || 0,
+        totalTokens: (result.usage?.prompt_tokens || 0) + (result.usage?.completion_tokens || 0),
+      };
+
       return {
         rawCall: {
-          rawPrompt: params.prompt,
+          rawPrompt: params.prompt as LanguageModelV2Prompt,
           rawSettings: {
             model: "lynxa-pro",
             max_tokens: params.maxTokens,
@@ -52,18 +84,16 @@ const createLynxaModel = (modelId: string): LanguageModel => {
             top_p: params.topP,
           },
         },
-        finishReason: result.choices[0]?.finish_reason || "stop",
-        usage: {
-          inputTokens: result.usage?.prompt_tokens || 0,
-          outputTokens: result.usage?.completion_tokens || 0,
-        },
+        content,
+        finishReason,
+        usage,
         warnings: [],
-        content: result.choices[0]?.message?.content ? 
-          [{ type: "text", text: result.choices[0].message.content }] : 
-          [],
+        providerMetadata: undefined,
+        request: undefined,
+        response: undefined,
       };
     },
-    doStream: async (params) => {
+    doStream: async (params: LanguageModelV2CallOptions) => {
       const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
         method: "POST",
         headers: {
@@ -117,7 +147,7 @@ const createLynxaModel = (modelId: string): LanguageModel => {
                     try {
                       const parsed = JSON.parse(data);
                       const content = parsed.choices[0]?.delta?.content;
-                      
+
                       if (content) {
                         controller.enqueue({
                           type: 'text-delta',
@@ -138,7 +168,7 @@ const createLynxaModel = (modelId: string): LanguageModel => {
           },
         }),
         rawCall: {
-          rawPrompt: params.prompt,
+          rawPrompt: params.prompt as LanguageModelV2Prompt,
           rawSettings: {
             model: "lynxa-pro",
             max_tokens: params.maxTokens,
