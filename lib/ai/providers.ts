@@ -1,199 +1,189 @@
-import { 
+import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
   LanguageModel,
-  LanguageModelV2Content,
-  LanguageModelV2FinishReason,
-  LanguageModelV2Usage,
-  LanguageModelV2CallWarning,
-  LanguageModelV2Prompt,
-  SharedV2ProviderMetadata,
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
-// Define a custom interface for call options if needed
-interface LynxaCallOptions {
-  prompt: LanguageModelV2Prompt;
-  maxTokens?: number;
-  temperature?: number;
-  topP?: number;
+// Custom types to avoid unexported type errors
+interface CustomPrompt {
+  role: string;
+  content: string | { type: string; text: string }[];
 }
 
-const createLynxaModel = (modelId: string): LanguageModel => {
+interface CustomContent {
+  type: "text";
+  text: string;
+}
+
+interface CustomUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+interface CustomGenerateResult {
+  content: CustomContent[];
+  finishReason: string;
+  usage: CustomUsage;
+  warnings: any[];
+  providerMetadata?: any;
+  request?: any;
+  response?: any;
+}
+
+interface CustomStreamResult {
+  stream: ReadableStream<CustomContent>;
+  warnings: any[];
+}
+
+// Create a custom Groq language model
+const createGroqModel = (modelId: string = "llama-3.3-70b-versatile"): LanguageModel => {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY environment variable is not set");
+  }
+  const API_KEY = process.env.GROQ_API_KEY;
+  const BASE_URL = "https://api.groq.com/openai/v1";
+
   return {
     specificationVersion: "v2",
-    provider: "lynxa",
-    modelId: modelId,
+    provider: "groq",
+    modelId,
     defaultObjectGenerationMode: "json",
-    supportedUrlProtocols: [],
-    supportedImageFormats: [],
-    supportedUseCases: [],
-    doGenerate: async (params: any): Promise<{
-      content: LanguageModelV2Content[];
-      finishReason: LanguageModelV2FinishReason;
-      usage: LanguageModelV2Usage;
-      providerMetadata?: SharedV2ProviderMetadata | undefined;
-      request?: unknown;
-      response?: unknown;
-      warnings: LanguageModelV2CallWarning[];
-    }> => {
-      // Validate environment variable
-      if (!process.env.LYNXA_API_KEY) {
-        throw new Error("LYNXA_API_KEY environment variable is not set");
-      }
+    supportedUrlProtocols: ["https", "http"],
+    supportedImageFormats: [], // Llama 3.3 70B is text-only
+    supportedUseCases: ["chat", "reasoning"],
 
-      const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.LYNXA_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "lynxa-pro",
-          max_tokens: params.maxTokens || 1024,
-          stream: false,
-          messages: params.prompt.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          temperature: params.temperature,
-          top_p: params.topP,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Lynxa API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      // Validate API response structure
-      if (!result.choices || !Array.isArray(result.choices) || !result.choices[0]) {
-        throw new Error("Invalid Lynxa API response: missing or invalid choices");
-      }
-
-      const choice = result.choices[0];
-      const finishReason: LanguageModelV2FinishReason = choice.finish_reason || "stop";
-      const content: LanguageModelV2Content[] = choice.message?.content
-        ? [{ type: "text", text: choice.message.content }]
-        : [];
-
-      const usage: LanguageModelV2Usage = {
-        inputTokens: result.usage?.prompt_tokens || 0,
-        outputTokens: result.usage?.completion_tokens || 0,
-        totalTokens: (result.usage?.prompt_tokens || 0) + (result.usage?.completion_tokens || 0),
-      };
-
-      return {
-        rawCall: {
-          rawPrompt: params.prompt as LanguageModelV2Prompt,
-          rawSettings: {
-            model: "lynxa-pro",
-            max_tokens: params.maxTokens,
-            temperature: params.temperature,
-            top_p: params.topP,
+    doGenerate: async (params: any): Promise<CustomGenerateResult> => {
+      try {
+        const response = await fetch(`${BASE_URL}/chat/completions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+            "Content-Type": "application/json",
           },
-        },
-        content,
-        finishReason,
-        usage,
-        warnings: [],
-        providerMetadata: undefined,
-        request: undefined,
-        response: undefined,
-      };
+          body: JSON.stringify({
+            model: modelId,
+            messages: params.prompt as CustomPrompt[],
+            max_tokens: params.maxTokens || 1024,
+            temperature: params.temperature || 0.7,
+            top_p: params.topP || 1,
+            stream: false,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "Unknown error");
+          throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+
+        // Validate response structure
+        if (!result.choices || !Array.isArray(result.choices) || !result.choices[0]) {
+          throw new Error("Invalid Groq API response: missing or invalid choices");
+        }
+
+        const choice = result.choices[0];
+        const content: CustomContent[] = choice.message?.content
+          ? [{ type: "text", text: choice.message.content }]
+          : [];
+
+        const usage: CustomUsage = {
+          inputTokens: result.usage?.prompt_tokens || 0,
+          outputTokens: result.usage?.completion_tokens || 0,
+          totalTokens: (result.usage?.prompt_tokens || 0) + (result.usage?.completion_tokens || 0),
+        };
+
+        return {
+          content,
+          finishReason: choice.finish_reason || "stop",
+          usage,
+          warnings: [],
+          providerMetadata: undefined,
+          request: undefined,
+          response: undefined,
+        };
+      } catch (error) {
+        throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
     },
-    doStream: async (params: any) => {
-      // Validate environment variable
-      if (!process.env.LYNXA_API_KEY) {
-        throw new Error("LYNXA_API_KEY environment variable is not set");
-      }
 
-      const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.LYNXA_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "lynxa-pro",
-          max_tokens: params.maxTokens || 1024,
-          stream: true,
-          messages: params.prompt.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          temperature: params.temperature,
-          top_p: params.topP,
-        }),
-      });
+    doStream: async (params: any): Promise<CustomStreamResult> => {
+      try {
+        const response = await fetch(`${BASE_URL}/chat/completions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: modelId,
+            messages: params.prompt as CustomPrompt[],
+            max_tokens: params.maxTokens || 1024,
+            temperature: params.temperature || 0.7,
+            top_p: params.topP || 1,
+            stream: true,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`Lynxa API error: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "Unknown error");
+          throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+        }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error("Failed to get response body reader");
+        }
 
-      return {
-        stream: new ReadableStream({
-          async start(controller) {
-            if (!reader) {
-              controller.close();
-              return;
-            }
+        const decoder = new TextDecoder();
 
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+        return {
+          stream: new ReadableStream({
+            async start(controller) {
+              try {
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                  const chunk = decoder.decode(value, { stream: true });
+                  const lines = chunk.split("\n");
 
-                for (const line of lines) {
-                  if (line.startsWith('data: ')) {
-                    const data = line.slice(6);
-                    if (data === '[DONE]') {
-                      controller.close();
-                      return;
-                    }
-
-                    try {
-                      const parsed = JSON.parse(data);
-                      const content = parsed.choices[0]?.delta?.content;
-
-                      if (content) {
-                        controller.enqueue({
-                          type: 'text-delta',
-                          textDelta: content,
-                        });
+                  for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                      const data = line.slice(6);
+                      if (data === "[DONE]") {
+                        controller.close();
+                        return;
                       }
-                    } catch (e) {
-                      // Skip invalid JSON
+
+                      try {
+                        const parsed = JSON.parse(data);
+                        const delta = parsed.choices[0]?.delta?.content;
+                        if (delta) {
+                          controller.enqueue({ type: "text", text: delta } as CustomContent);
+                        }
+                      } catch (e) {
+                        // Skip invalid JSON lines
+                        console.warn(`Skipping invalid JSON in stream: ${data}`);
+                      }
                     }
                   }
                 }
+              } catch (error) {
+                controller.error(error instanceof Error ? error : new Error("Unknown streaming error"));
+              } finally {
+                reader.releaseLock();
               }
-            } catch (error) {
-              controller.error(error);
-            } finally {
-              reader.releaseLock();
-            }
-          },
-        }),
-        rawCall: {
-          rawPrompt: params.prompt as LanguageModelV2Prompt,
-          rawSettings: {
-            model: "lynxa-pro",
-            max_tokens: params.maxTokens,
-            temperature: params.temperature,
-            top_p: params.topP,
-          },
-        },
-        warnings: [],
-      };
+            },
+          }),
+          warnings: [],
+        };
+      } catch (error) {
+        throw new Error(`Failed to stream response: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
     },
   };
 };
@@ -217,12 +207,12 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": createLynxaModel("lynxa-pro"),
+        "chat-model": createGroqModel("llama-3.3-70b-versatile"),
         "chat-model-reasoning": wrapLanguageModel({
-          model: createLynxaModel("lynxa-pro"),
+          model: createGroqModel("llama-3.3-70b-versatile"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": createLynxaModel("lynxa-pro"),
-        "artifact-model": createLynxaModel("lynxa-pro"),
+        "title-model": createGroqModel("llama-3.3-70b-versatile"),
+        "artifact-model": createGroqModel("llama-3.3-70b-versatile"),
       },
     });
