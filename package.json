@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
-    "@ai-sdk/openai": "^0.0.68", // Added for Groq API integration
+    "@ai-sdk/openai": "^0.0.68",
     "@ai-sdk/provider": "2.0.0",
     "@ai-sdk/react": "2.0.26",
     "@ai-sdk/xai": "2.0.13",
