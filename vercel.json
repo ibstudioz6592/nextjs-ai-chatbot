@@ -1,11 +1,11 @@
 {
   "buildCommand": "pnpm run build",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --frozen-lockfile=false",
   "framework": "nextjs",
   "regions": ["iad1"],
   "build": {
     "env": {
-      "LYNXA_API_KEY": "YOUR_LYNXA_API_KEY",
+      "LYNXA_API_KEY": "@lynxa_api_key",
       "POSTGRES_URL": "@postgres_url",
       "AUTH_SECRET": "@auth_secret",
       "BLOB_READ_WRITE_TOKEN": "@blob_read_write_token",
@@ -14,7 +14,8 @@
   },
   "functions": {
     "app/api/**": {
-      "memory": 1024
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "crons": [
