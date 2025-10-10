@@ -5,6 +5,9 @@ import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+// Export stream context for route handlers
+export const getStreamContext = () => streamText.getContext();
+
 export async function POST(req: Request) {
   const {
     messages,

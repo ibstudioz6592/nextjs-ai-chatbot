@@ -29,3 +29,6 @@ export type modelID = keyof typeof languageModels;
 export const MODELS = Object.keys(languageModels);
 
 export const defaultModel: modelID = "kimi-k2";
+
+// Alias model as myProvider for backward compatibility
+export const myProvider = model;
