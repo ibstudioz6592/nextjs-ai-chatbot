@@ -2,22 +2,155 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-  createOpenAICompatible,
+  LanguageModelV1,
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
-// Create a custom model for Lynxa Pro API
-const createLynxaModel = (modelId: string, streaming: boolean = false) => {
-  return createOpenAICompatible({
-    name: modelId,
-    apiKey: process.env.LYNXA_API_KEY || "",
-    baseURL: "https://lynxa-pro-backend.vercel.app/api/lynxa",
-    headers: {
-      "Authorization": `Bearer ${process.env.LYNXA_API_KEY || ""}`,
-      "Content-Type": "application/json"
+// Create a custom language model for your Lynxa API
+const createLynxaModel = (modelId: string): LanguageModelV1 => {
+  return {
+    specificationVersion: "v1",
+    provider: "lynxa",
+    modelId: modelId,
+    defaultObjectGenerationMode: "json",
+    supportedUrlProtocols: [],
+    supportedImageFormats: [],
+    supportedUseCases: [],
+    doGenerate: async (params) => {
+      const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.LYNXA_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "lynxa-pro",
+          max_tokens: params.maxTokens || 1024,
+          stream: false,
+          messages: params.prompt.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          temperature: params.temperature,
+          top_p: params.topP,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Lynxa API error: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      return {
+        text: result.choices[0]?.message?.content || "",
+        usage: {
+          promptTokens: result.usage?.prompt_tokens || 0,
+          completionTokens: result.usage?.completion_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0,
+        },
+        finishReason: result.choices[0]?.finish_reason || "stop",
+        rawCall: {
+          rawPrompt: params.prompt,
+          rawSettings: {
+            model: "lynxa-pro",
+            max_tokens: params.maxTokens,
+            temperature: params.temperature,
+            top_p: params.topP,
+          },
+        },
+        rawResponse: result,
+        warnings: [],
+      };
     },
-    compatibility: "compatible",
-  });
+    doStream: async (params) => {
+      const response = await fetch("https://lynxa-pro-backend.vercel.app/api/lynxa", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.LYNXA_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "lynxa-pro",
+          max_tokens: params.maxTokens || 1024,
+          stream: true,
+          messages: params.prompt.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          temperature: params.temperature,
+          top_p: params.topP,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Lynxa API error: ${response.statusText}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      return {
+        stream: new ReadableStream({
+          async start(controller) {
+            if (!reader) {
+              controller.close();
+              return;
+            }
+
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                      controller.close();
+                      return;
+                    }
+
+                    try {
+                      const parsed = JSON.parse(data);
+                      const content = parsed.choices[0]?.delta?.content;
+                      
+                      if (content) {
+                        controller.enqueue({
+                          type: 'text-delta',
+                          textDelta: content,
+                        });
+                      }
+                    } catch (e) {
+                      // Skip invalid JSON
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              controller.error(error);
+            } finally {
+              reader.releaseLock();
+            }
+          },
+        }),
+        rawCall: {
+          rawPrompt: params.prompt,
+          rawSettings: {
+            model: "lynxa-pro",
+            max_tokens: params.maxTokens,
+            temperature: params.temperature,
+            top_p: params.topP,
+          },
+        },
+        rawResponse: {},
+        warnings: [],
+      };
+    },
+  };
 };
 
 export const myProvider = isTestEnvironment
