@@ -54,9 +54,8 @@ const createLynxaModel = (modelId: string): LanguageModel => {
         },
         finishReason: result.choices[0]?.finish_reason || "stop",
         usage: {
-          promptTokens: result.usage?.prompt_tokens || 0,
-          completionTokens: result.usage?.completion_tokens || 0,
-          totalTokens: result.usage?.total_tokens || 0,
+          inputTokens: result.usage?.prompt_tokens || 0,
+          outputTokens: result.usage?.completion_tokens || 0,
         },
         warnings: [],
         content: result.choices[0]?.message?.content ? 
