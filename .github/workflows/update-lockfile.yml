@@ -1,68 +1,54 @@
-name: CI/CD Pipeline
+name: Update pnpm-lock.yaml
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   pull_request:
     branches: [main]
-  # Optional: Trigger on Dependabot updates
-  workflow_dispatch:  # Allows manual runs
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
-  install-and-test:
-    runs-on: ubuntu-latest  # Use ubuntu-latest for consistency
-
+  update-lockfile:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # Needed for push permissions
+          token: ${{ secrets.GITHUB_TOKEN }} # Required for pushing changes
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Matches your engines: ">=20.12.2"
-          cache: 'pnpm'  # Caches pnpm store for faster installs
+          node-version: '20' # Matches your engines: ">=20.12.2"
+          cache: 'pnpm'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4  # Official pnpm setup action
+        uses: pnpm/action-setup@v4
         with:
-          version: 9  # Matches your packageManager: "pnpm@9.12.3"
+          version: 9.12.3 # Matches your packageManager
 
-      - name: Install dependencies (update lockfile if needed)
-        run: pnpm install --frozen-lockfile=false  # Key: No frozen-lockfile to allow updates
-        # Alternative: pnpm install --no-frozen-lockfile (same effect)
+      - name: Install dependencies and update lockfile
+        run: pnpm install --no-frozen-lockfile
+        env:
+          PNPM_HEADLESS: true # Optional: Faster installs for CI
 
-      - name: Run build
-        run: pnpm run build  # Your build script from package.json
-
-      - name: Run tests (optional)
-        run: pnpm test
-
-      - name: Commit and push updated pnpm-lock.yaml
-        if: github.event_name == 'pull_request' || github.event_name == 'push'  # Run on PRs/pushes
+      - name: Commit updated pnpm-lock.yaml
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add pnpm-lock.yaml
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "No changes to pnpm-lock.yaml"
           else
-            git commit -m "chore: update pnpm-lock.yaml [skip ci]"  # [skip ci] avoids re-triggering
+            git commit -m "chore: update pnpm-lock.yaml [skip ci]"
             git push
           fi
 
-  # Optional: Separate job for linting/formatting
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - run: pnpm install --frozen-lockfile=false
-      - run: pnpm lint  # Or your lint script
+      - name: Run build
+        run: pnpm run build
