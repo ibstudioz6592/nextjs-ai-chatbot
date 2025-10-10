@@ -28,10 +28,14 @@ export async function migrate() {
 }
 
 if (require.main === module) {
-  migrate().catch((err) => {
-    console.error("❌ Migration failed");
-    console.error(err);
-    process.exit(1);
-  });
-  process.exit(1);
-});
+  migrate()
+    .then(() => {
+      console.log("Migration completed successfully");
+      process.exit(0); // Exit with success code
+    })
+    .catch((err) => {
+      console.error("❌ Migration failed");
+      console.error(err);
+      process.exit(1); // Exit with error code
+    });
+}
