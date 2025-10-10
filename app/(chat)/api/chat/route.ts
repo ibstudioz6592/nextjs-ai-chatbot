@@ -1,5 +1,5 @@
-import { model, modelID } from "@/ai/providers";
-import { weatherTool } from "@/ai/tools";
+import { model, modelID } from "@/lib/ai/providers";
+import { getWeather } from "@/lib/ai/tools/get-weather";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
 
 // Allow streaming responses up to 30 seconds
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5), // enable multi-step agentic flow
     tools: {
-      getWeather: weatherTool,
+      getWeather,
     },
     experimental_telemetry: {
       isEnabled: false,
