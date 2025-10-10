@@ -155,7 +155,7 @@ export function Chat({
               messages={messages}
               onModelChange={setCurrentModelId}
               selectedModelId={currentModelId}
-              selectedVisibilityType="private" // Added this line with a default value
+              selectedVisibilityType="private"
               sendMessage={sendMessage}
               setAttachments={setAttachments}
               setInput={setInput}
@@ -176,6 +176,7 @@ export function Chat({
         messages={messages}
         regenerate={regenerate}
         selectedModelId={currentModelId}
+        selectedVisibilityType="private" // Added this line with a default value
         sendMessage={sendMessage}
         setAttachments={setAttachments}
         setInput={setInput}
