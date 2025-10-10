@@ -9,13 +9,13 @@ export type ChatModel = {
 export const chatModels: ChatModel[] = [
   {
     id: "chat-model",
-    name: "Lynxa Pro",
-    description: "Advanced AI model with text generation capabilities",
+    name: "Llama 3.3 70B (Groq)",
+    description: "High-performance text generation model from Meta, hosted on Groq for fast inference",
   },
   {
     id: "chat-model-reasoning",
-    name: "Lynxa Pro Reasoning",
+    name: "Llama 3.3 70B Reasoning (Groq)",
     description:
-      "Uses advanced chain-of-thought reasoning for complex problems",
+      "Uses advanced chain-of-thought reasoning for complex problems, powered by Groq",
   },
 ];
