@@ -1,1 +1,1 @@
-export { weatherTool } from './get-weather';
+// No barrel exports; use direct imports for tree-shaking and performance

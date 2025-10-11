@@ -1,17 +1,16 @@
 import { model, modelID } from "@/lib/ai/providers";
 import { getWeather } from "@/lib/ai/tools/get-weather";
-import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
+import type { ChatMessage } from "@/lib/types";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
-
-export const getStreamContext = () => streamText.getContext();
 
 export async function POST(req: Request) {
   const {
     messages,
     selectedModel,
-  }: { messages: UIMessage[]; selectedModel: modelID } = await req.json();
+  }: { messages: ChatMessage[]; selectedModel: modelID } = await req.json();
 
   const result = streamText({
     model: model.languageModel(selectedModel),
