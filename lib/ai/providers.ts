@@ -13,6 +13,7 @@ const groq = createGroq({
 });
 
 const languageModels = {
+  "chat-model-lite": groq("llama-3.1-8b-instant"),
   "chat-model": groq("llama-3.3-70b-versatile"),
   "chat-model-reasoning": groq("deepseek-r1-distill-llama-70b"),
   "kimi-k2": groq("llama-3.3-70b-versatile"),

@@ -9,13 +9,18 @@ export type ChatModel = {
 
 export const chatModels: ChatModel[] = [
   {
+    id: 'chat-model-lite',
+    name: 'Lynxa Lite',
+    description: 'Fast and efficient AI model for quick responses',
+  },
+  {
     id: 'chat-model',
     name: 'Lynxa Pro',
     description: 'High-performance AI model for chat and text generation',
   },
   {
     id: 'chat-model-reasoning',
-    name: 'Lynxa Pro with Reasoning',
+    name: 'Lynxa Reasoning',
     description: 'Advanced AI model with step-by-step reasoning capabilities',
   },
 ];
