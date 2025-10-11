@@ -1,93 +1,104 @@
-// app/(chat)/api/chat/route.ts
-import { streamText } from "ai";
+import { convertToModelMessages, streamText } from "ai";
+import { auth } from "@/app/(auth)/auth";
+import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { model } from "@/lib/ai/providers";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import {
+  createMessage,
+  getChatById,
+  saveChat,
+  saveMessages,
+} from "@/lib/db/queries";
 import type { ChatMessage } from "@/lib/types";
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+export const maxDuration = 60;
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    console.log("📨 Received request");
+export async function POST(request: Request) {
+  const {
+    id,
+    message,
+    selectedChatModel,
+  }: { id: string; message: ChatMessage; selectedChatModel: string } =
+    await request.json();
 
-    const { 
-      message, 
-      selectedChatModel = "chat-model",
-    } = body;
+  const session = await auth();
 
-    // Validate we have a message
-    if (!message) {
-      console.error("❌ No message in request");
-      return new Response(
-        JSON.stringify({ error: "No message provided" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Convert the single message with parts to AI SDK format
-    let messageContent = "";
-    
-    for (const part of message.parts) {
-      if (part.type === "text") {
-        messageContent += part.text;
-      }
-    }
-
-    if (!messageContent.trim()) {
-      console.error("❌ Empty message content");
-      return new Response(
-        JSON.stringify({ error: "Message content is empty" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const convertedMessage = {
-      role: message.role as "user" | "assistant",
-      content: messageContent,
-    };
-
-    console.log("✅ Using model:", selectedChatModel);
-    console.log("✅ Message:", messageContent.substring(0, 100) + "...");
-
-    const result = streamText({
-      model: model.languageModel(selectedChatModel) as any,
-      system: "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
-      messages: [convertedMessage],
-      tools: {
-        getWeather,
-      },
-      temperature: 0.7,
-    });
-
-    console.log("✅ Streaming response...");
-    
-    // Return the text stream
-    return result.toTextStreamResponse();
-    
-  } catch (error) {
-    console.error("💥 Chat Route Error:", error);
-    
-    // Provide detailed error information
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    
-    console.error("Error details:", {
-      message: errorMessage,
-      stack: errorStack,
-    });
-    
-    return new Response(
-      JSON.stringify({
-        error: "Failed to process chat request",
-        details: errorMessage,
-        timestamp: new Date().toISOString(),
-      }),
-      { 
-        status: 500, 
-        headers: { "Content-Type": "application/json" } 
-      }
-    );
+  if (!session || !session.user || !session.user.id) {
+    return new Response("Unauthorized", { status: 401 });
   }
+
+  const userMessage = createMessage({
+    chatId: id,
+    role: "user",
+    content: message,
+  });
+
+  const chat = await getChatById({ id });
+
+  if (!chat) {
+    const title = await generateTitleFromUserMessage({ message });
+    await saveChat({ id, userId: session.user.id, title });
+  }
+
+  await saveMessages({ messages: [userMessage] });
+
+  const allMessages = [...(chat?.messages ?? []), userMessage];
+
+  const result = streamText({
+    model: model.languageModel(selectedChatModel),
+    system:
+      "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
+    messages: convertToModelMessages(allMessages),
+    tools: {
+      getWeather,
+    },
+    maxSteps: 5,
+    onFinish: async ({ response }) => {
+      if (session.user?.id) {
+        try {
+          const responseMessagesWithoutIncompleteToolCalls =
+            response.messages.filter((message) => {
+              if (message.role === "assistant") {
+                const hasIncompleteToolCall = message.content.some(
+                  (content) =>
+                    content.type === "tool-call" &&
+                    response.messages.find(
+                      (m) =>
+                        m.role === "tool" &&
+                        m.content.some(
+                          (c) =>
+                            c.type === "tool-result" &&
+                            c.toolCallId === content.toolCallId,
+                        ),
+                    ) === undefined,
+                );
+
+                return !hasIncompleteToolCall;
+              }
+
+              return message.role === "tool";
+            });
+
+          const responseMessages = responseMessagesWithoutIncompleteToolCalls.map(
+            (message) =>
+              createMessage({
+                chatId: id,
+                role: message.role,
+                content: message,
+              }),
+          );
+
+          await saveMessages({ messages: responseMessages });
+        } catch (error) {
+          console.error("Failed to save chat:", error);
+        }
+      }
+    },
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: "stream-text",
+    },
+  });
+
+  return result.toDataStreamResponse({});
 }
