@@ -1,5 +1,5 @@
 // lib/ai/providers.ts
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 
 // Validate API key only on server-side
 if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
@@ -7,10 +7,8 @@ if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
   throw new Error("GROQ_API_KEY environment variable is required");
 }
 
-// Create a Groq provider using OpenAI compatibility
-const groq = createOpenAI({
-  name: 'groq',
-  baseURL: "https://api.groq.com/openai/v1",
+// Create a Groq provider using official SDK
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY || '',
 });
 
