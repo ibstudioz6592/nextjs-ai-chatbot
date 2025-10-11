@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -57,15 +58,22 @@ export function Chat({
     resumeStream,
   } = useChat<ChatMessage>({
     id,
-    api: "/api/chat",
     messages: initialMessages,
     experimental_throttle: 100,
     generateId: generateUUID,
-    body: {
-      id,
-      selectedChatModel: currentModelId,
-    },
-    fetch: fetchWithErrorHandlers,
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      fetch: fetchWithErrorHandlers,
+      prepareSendMessagesRequest(request) {
+        return {
+          body: {
+            id: request.id,
+            messages: request.messages,
+            selectedChatModel: currentModelIdRef.current,
+          },
+        };
+      },
+    }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
