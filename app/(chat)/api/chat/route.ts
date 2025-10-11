@@ -44,7 +44,8 @@ export async function POST(request: Request) {
   await saveMessages({ messages: [userMessage] });
 
   const existingMessages = chat ? await getMessagesByChatId({ id }) : [];
-  const allMessages = [...existingMessages, userMessage];
+  const existingUIMessages = convertToUIMessages(existingMessages);
+  const allMessages = [...existingUIMessages, message];
 
   const result = streamText({
     model: model.languageModel(selectedChatModel),
