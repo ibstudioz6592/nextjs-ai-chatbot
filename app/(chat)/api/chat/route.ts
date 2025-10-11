@@ -83,15 +83,5 @@ export async function POST(request: Request) {
     },
   });
 
-  const dataStream = result.toDataStream();
-  
-  return new Response(dataStream, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
-      "X-Accel-Buffering": "no",
-    },
-  });
+  return result.toTextStreamResponse();
 }
