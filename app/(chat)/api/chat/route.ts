@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const result = streamText({
     model: model.languageModel(selectedChatModel),
     system:
-      "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
+      "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information.",
     messages: convertToModelMessages(allMessages),
     tools: {
       getWeather,
@@ -83,5 +83,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return result.toTextStreamResponse();
+  return result.toDataStreamResponse();
 }

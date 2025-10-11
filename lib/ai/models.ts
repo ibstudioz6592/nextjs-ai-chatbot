@@ -11,16 +11,16 @@ export const chatModels: ChatModel[] = [
   {
     id: 'chat-model-lite',
     name: 'Lynxa Lite',
-    description: 'Fast and efficient AI model for quick responses',
+    description: 'Fast and efficient AI model developed by AJ STUDIOZ for quick responses',
   },
   {
     id: 'chat-model',
     name: 'Lynxa Pro',
-    description: 'High-performance AI model for chat and text generation',
+    description: 'High-performance AI model developed by AJ STUDIOZ for advanced conversations',
   },
   {
     id: 'chat-model-reasoning',
     name: 'Lynxa Reasoning',
-    description: 'Advanced AI model with step-by-step reasoning capabilities',
+    description: 'Advanced reasoning AI model developed by AJ STUDIOZ with step-by-step thinking',
   },
 ];
