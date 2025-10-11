@@ -1,3 +1,4 @@
+// app/(chat)/api/chat/route.ts
 import { streamText } from "ai";
 import { model } from "@/lib/ai/providers";
 import { getWeather } from "@/lib/ai/tools/get-weather";
@@ -8,43 +9,52 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const {
-      messages,
-      selectedModel,
-    }: { 
-      messages: ChatMessage[]; 
-      selectedModel: string;
-    } = await req.json();
+    const body = await req.json();
+    console.log("Received request body:", JSON.stringify(body, null, 2));
 
-    // Validate that we have messages
-    if (!messages || messages.length === 0) {
+    const { 
+      message, 
+      selectedChatModel = "chat-model",
+      id: chatId,
+    } = body;
+
+    // Validate we have a message
+    if (!message) {
+      console.error("No message in request");
       return new Response(
-        JSON.stringify({ error: "No messages provided" }),
+        JSON.stringify({ error: "No message provided" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Convert ChatMessage format to the format expected by the AI SDK
-    const aiMessages = messages.map(msg => ({
-      role: msg.role,
-      content: typeof msg.content === 'string' 
-        ? msg.content 
-        : msg.content.map(part => {
-            if (part.type === 'text') {
-              return { type: 'text' as const, text: part.text };
-            }
-            if (part.type === 'image') {
-              return { type: 'image' as const, image: part.image };
-            }
-            return part;
-          })
-    }));
+    // Convert the single message with parts to AI SDK format
+    const convertedMessage = {
+      role: message.role,
+      content: message.parts
+        .map((part: any) => {
+          if (part.type === "text") {
+            return part.text;
+          }
+          if (part.type === "file") {
+            return {
+              type: "image",
+              image: part.url,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join("\n"),
+    };
+
+    console.log("Converted message:", convertedMessage);
+    console.log("Using model:", selectedChatModel);
 
     const result = streamText({
-      model: model.languageModel(selectedModel || "chat-model"),
-      system: "You are a helpful assistant.",
-      messages: aiMessages,
-      maxSteps: 5, // Updated from stopWhen(stepCountIs(5))
+      model: model.languageModel(selectedChatModel),
+      system: "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
+      messages: [convertedMessage],
+      maxSteps: 5,
       tools: {
         getWeather,
       },
@@ -56,26 +66,40 @@ export async function POST(req: Request) {
     return result.toDataStreamResponse({
       sendUsage: true,
       getErrorMessage: (error) => {
+        console.error("Stream error:", error);
         if (error instanceof Error) {
-          if (error.message.includes("Rate limit")) {
-            return "Rate limit exceeded. Please try again later.";
+          if (error.message.includes("Rate limit") || error.message.includes("rate_limit")) {
+            return "Rate limit exceeded. Please try again in a few moments.";
           }
-          if (error.message.includes("API key")) {
-            return "API configuration error. Please check your API key.";
+          if (error.message.includes("API key") || error.message.includes("authentication")) {
+            return "API configuration error. Please contact support.";
+          }
+          if (error.message.includes("model")) {
+            return "The selected model is currently unavailable. Please try a different model.";
           }
         }
-        console.error("Chat API Error:", error);
-        return "An error occurred while processing your request.";
+        return "An error occurred while processing your request. Please try again.";
       },
     });
   } catch (error) {
     console.error("Chat Route Error:", error);
+    
+    // Provide detailed error information
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails = {
+      error: "Failed to process chat request",
+      details: errorMessage,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.error("Error details:", errorDetails);
+    
     return new Response(
-      JSON.stringify({ 
-        error: "Failed to process chat request",
-        details: error instanceof Error ? error.message : "Unknown error"
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify(errorDetails),
+      { 
+        status: 500, 
+        headers: { "Content-Type": "application/json" } 
+      }
     );
   }
 }
