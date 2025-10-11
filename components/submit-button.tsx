@@ -1,17 +1,15 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-
 import { LoaderIcon } from "@/components/icons";
-
 import { Button } from "./ui/button";
 
 export function SubmitButton({
   children,
-  isSuccessful,
+  isSuccessful = false,
 }: {
   children: React.ReactNode;
-  isSuccessful: boolean;
+  isSuccessful?: boolean;
 }) {
   const { pending } = useFormStatus();
 
@@ -36,3 +34,5 @@ export function SubmitButton({
     </Button>
   );
 }
+
+export default SubmitButton;
