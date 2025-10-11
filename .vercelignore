@@ -1,2 +1,4 @@
-app/(auth)/login
-app/(auth)/register
+# Ignore test files
+tests/
+*.test.ts
+*.test.tsx
