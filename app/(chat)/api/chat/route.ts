@@ -16,12 +16,11 @@ import { convertToUIMessages, generateUUID } from "@/lib/utils";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  const {
-    id,
-    message,
-    selectedChatModel,
-  }: { id: string; message: ChatMessage; selectedChatModel: string } =
-    await request.json();
+  const body = await request.json();
+  const { id, messages, selectedChatModel } = body;
+  
+  // Get the last message from the messages array
+  const message = messages.at(-1);
 
   const session = await auth();
 
@@ -83,5 +82,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }
