@@ -6,6 +6,8 @@ import {
 } from "ai";
 
 const languageModels = {
+  "chat-model": groq("moonshotai/kimi-k2-instruct"),
+  "chat-model-reasoning": groq("deepseek-r1-distill-llama-70b"),
   "kimi-k2": groq("moonshotai/kimi-k2-instruct"),
   "meta-llama/llama-4-scout-17b-16e-instruct": groq(
     "meta-llama/llama-4-scout-17b-16e-instruct",
