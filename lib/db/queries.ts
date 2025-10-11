@@ -223,13 +223,13 @@ export function createMessage({
 }: {
   chatId: string;
   role: "user" | "assistant" | "tool";
-  content: ChatMessage;
+  content: any;
 }): DBMessage {
   return {
     id: generateUUID(),
     chatId,
     role,
-    parts: content.parts,
+    parts: content.parts || [],
     attachments: content.attachments || [],
     createdAt: new Date(),
   };
