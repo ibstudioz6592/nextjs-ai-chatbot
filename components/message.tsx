@@ -67,19 +67,20 @@ const PurePreviewMessage = ({
         })}
       >
         {message.role === "assistant" && (
-          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 ring-1 ring-border">
             <motion.div
-              animate={{
+              animate={isLoading ? {
                 scale: [1, 1.2, 1],
                 rotate: [0, 180, 360],
-              }}
+              } : {}}
               transition={{
                 duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
+                repeat: isLoading ? Number.POSITIVE_INFINITY : 0,
                 ease: "easeInOut",
               }}
+              className="font-bold text-white text-xs"
             >
-              <SparklesIcon size={14} />
+              AJ
             </motion.div>
           </div>
         )}
