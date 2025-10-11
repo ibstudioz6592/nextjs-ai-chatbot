@@ -10,28 +10,30 @@ import {
   gte,
   inArray,
   lt,
-  type SQL,
+  sql,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { genSaltSync, hashSync } from "bcrypt-ts";
+
+import {
+  user,
+  chat,
+  type User,
+  message,
+  vote,
+  document,
+  type Suggestion,
+  suggestion,
+  stream,
+  type DBMessage,
+} from "./schema";
+import { generateUUID } from "../utils";
+import type { ChatMessage } from "../types";
 import type { ArtifactKind } from "@/components/artifact";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { ChatSDKError } from "../errors";
 import type { AppUsage } from "../usage";
-import { generateUUID } from "../utils";
-import {
-  type Chat,
-  chat,
-  type DBMessage,
-  document,
-  message,
-  type Suggestion,
-  stream,
-  suggestion,
-  type User,
-  user,
-  vote,
-} from "./schema";
 import { generateHashedPassword } from "./utils";
 
 // Optionally, if not using email/pass login, you can
@@ -210,6 +212,25 @@ export async function getChatById({ id }: { id: string }) {
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to get chat by id");
   }
+}
+
+export function createMessage({
+  chatId,
+  role,
+  content,
+}: {
+  chatId: string;
+  role: "user" | "assistant" | "tool";
+  content: ChatMessage;
+}): DBMessage {
+  return {
+    id: generateUUID(),
+    chatId,
+    role,
+    parts: content.parts,
+    attachments: content.attachments || [],
+    createdAt: new Date(),
+  };
 }
 
 export async function saveMessages({ messages }: { messages: DBMessage[] }) {

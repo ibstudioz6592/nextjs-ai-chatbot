@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message });
-    await saveChat({ id, userId: session.user.id, title });
+    await saveChat({ id, userId: session.user.id, title, visibility: "private" });
   }
 
   await saveMessages({ messages: [userMessage] });
