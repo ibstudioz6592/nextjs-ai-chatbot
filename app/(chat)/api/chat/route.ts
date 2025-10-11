@@ -60,26 +60,14 @@ export async function POST(req: Request) {
       experimental_telemetry: {
         isEnabled: false,
       },
-    });
-
-    return result.toDataStreamResponse({
-      sendUsage: true,
-      getErrorMessage: (error) => {
-        console.error("Stream error:", error);
-        if (error instanceof Error) {
-          if (error.message.includes("Rate limit") || error.message.includes("rate_limit")) {
-            return "Rate limit exceeded. Please try again in a few moments.";
-          }
-          if (error.message.includes("API key") || error.message.includes("authentication")) {
-            return "API configuration error. Please contact support.";
-          }
-          if (error.message.includes("model")) {
-            return "The selected model is currently unavailable. Please try a different model.";
-          }
-        }
-        return "An error occurred while processing your request. Please try again.";
+      onFinish: ({ usage }) => {
+        console.log("Token usage:", usage);
       },
     });
+
+    // Use the correct method for AI SDK 5.0.26
+    return result.toTextStreamResponse();
+    
   } catch (error) {
     console.error("Chat Route Error:", error);
     
