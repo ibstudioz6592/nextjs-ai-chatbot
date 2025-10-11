@@ -54,7 +54,6 @@ export async function POST(req: Request) {
       model: model.languageModel(selectedChatModel),
       system: "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
       messages: [convertedMessage],
-      maxSteps: 5,
       tools: {
         getWeather,
       },
