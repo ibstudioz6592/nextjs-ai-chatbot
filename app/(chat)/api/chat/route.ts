@@ -56,7 +56,6 @@ export async function POST(request: Request) {
     tools: {
       getWeather,
     },
-    maxSteps: 5,
     onFinish: async ({ response }) => {
       if (session.user?.id) {
         try {
@@ -104,5 +103,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return result.toDataStreamResponse({});
+  return result.toTextStreamResponse();
 }
