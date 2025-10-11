@@ -52,14 +52,13 @@ export async function POST(req: Request) {
     console.log("✅ Message:", messageContent.substring(0, 100) + "...");
 
     const result = streamText({
-      model: model.languageModel(selectedChatModel),
+      model: model.languageModel(selectedChatModel) as any,
       system: "You are a helpful AI assistant created by AJ STUDIOZ. You are friendly, concise, and helpful.",
       messages: [convertedMessage],
       tools: {
         getWeather,
       },
       temperature: 0.7,
-      maxTokens: 2000,
     });
 
     console.log("✅ Streaming response...");

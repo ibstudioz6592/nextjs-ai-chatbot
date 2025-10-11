@@ -1,10 +1,5 @@
 // lib/ai/providers.ts
 import { createOpenAI } from "@ai-sdk/openai";
-import {
-  customProvider,
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-} from "ai";
 
 // Create a Groq provider using OpenAI compatibility
 const groq = createOpenAI({
@@ -20,18 +15,17 @@ const languageModels = {
     "llama-3.1-70b-versatile",
   ),
   "llama-3.1-8b-instant": groq("llama-3.1-8b-instant"),
-  "deepseek-r1-distill-llama-70b": wrapLanguageModel({
-    middleware: extractReasoningMiddleware({
-      tagName: "think",
-    }),
-    model: groq("deepseek-r1-distill-llama-70b"),
-  }),
+  "deepseek-r1-distill-llama-70b": groq("deepseek-r1-distill-llama-70b"),
   "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
+  "title-model": groq("llama-3.1-8b-instant"),
+  "artifact-model": groq("llama-3.3-70b-versatile"),
 };
 
-export const model = customProvider({
-  languageModels,
-});
+export const model = {
+  languageModel: (modelId: string): any => {
+    return languageModels[modelId as keyof typeof languageModels] || languageModels["chat-model"];
+  }
+};
 
 export type modelID = keyof typeof languageModels;
 
