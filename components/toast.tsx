@@ -18,15 +18,12 @@ export function toast(props: Omit<ToastProps, "id">) {
 
 function Toast(props: ToastProps) {
   const { id, type, description } = props;
-
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [multiLine, setMultiLine] = useState(false);
 
   useEffect(() => {
     const el = descriptionRef.current;
-    if (!el) {
-      return;
-    }
+    if (!el) return;
 
     const update = () => {
       const lineHeight = Number.parseFloat(getComputedStyle(el).lineHeight);
@@ -34,10 +31,9 @@ function Toast(props: ToastProps) {
       setMultiLine(lines > 1);
     };
 
-    update(); // initial check
-    const ro = new ResizeObserver(update); // re-check on width changes
+    update();
+    const ro = new ResizeObserver(update);
     ro.observe(el);
-
     return () => ro.disconnect();
   }, []);
 
@@ -73,3 +69,5 @@ type ToastProps = {
   type: "success" | "error";
   description: string;
 };
+
+export default toast;
