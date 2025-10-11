@@ -1,5 +1,10 @@
 // lib/ai/providers.ts
-import { createGroq } from "@ai-sdk/groq";
+import { groq } from "@ai-sdk/groq";
+import {
+  customProvider,
+  extractReasoningMiddleware,
+  wrapLanguageModel,
+} from "ai";
 
 // Validate API key only on server-side
 if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
@@ -7,37 +12,36 @@ if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
   throw new Error("GROQ_API_KEY environment variable is required");
 }
 
-// Create a Groq provider using official SDK
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY || '',
-});
-
 const languageModels = {
   "chat-model-lite": groq("llama-3.1-8b-instant"),
   "chat-model": groq("llama-3.3-70b-versatile"),
-  "chat-model-reasoning": groq("deepseek-r1-distill-llama-70b"),
-  "kimi-k2": groq("llama-3.3-70b-versatile"),
-  "meta-llama/llama-4-scout-17b-16e-instruct": groq(
-    "llama-3.1-70b-versatile",
-  ),
+  "chat-model-reasoning": wrapLanguageModel({
+    middleware: extractReasoningMiddleware({
+      tagName: "think",
+    }),
+    model: groq("deepseek-r1-distill-llama-70b"),
+  }),
   "llama-3.1-8b-instant": groq("llama-3.1-8b-instant"),
-  "deepseek-r1-distill-llama-70b": groq("deepseek-r1-distill-llama-70b"),
+  "deepseek-r1-distill-llama-70b": wrapLanguageModel({
+    middleware: extractReasoningMiddleware({
+      tagName: "think",
+    }),
+    model: groq("deepseek-r1-distill-llama-70b"),
+  }),
   "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
   "title-model": groq("llama-3.1-8b-instant"),
   "artifact-model": groq("llama-3.3-70b-versatile"),
 };
 
-export const model = {
-  languageModel: (modelId: string): any => {
-    return languageModels[modelId as keyof typeof languageModels] || languageModels["chat-model"];
-  }
-};
+export const model = customProvider({
+  languageModels,
+});
 
 export type modelID = keyof typeof languageModels;
 
 export const MODELS = Object.keys(languageModels);
 
-export const defaultModel: modelID = "llama-3.3-70b-versatile";
+export const defaultModel: modelID = "chat-model";
 
 // Alias model as myProvider for backward compatibility
 export const myProvider = model;
