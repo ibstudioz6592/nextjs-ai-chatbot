@@ -11,7 +11,7 @@ import {
   saveMessages,
 } from "@/lib/db/queries";
 import type { ChatMessage } from "@/lib/types";
-import { convertToUIMessages } from "@/lib/utils";
+import { convertToUIMessages, generateUUID } from "@/lib/utils";
 
 export const maxDuration = 60;
 
@@ -56,44 +56,24 @@ export async function POST(request: Request) {
     tools: {
       getWeather,
     },
-    onFinish: async ({ response }) => {
-      if (session.user?.id) {
+    onFinish: async ({ text }) => {
+      if (session.user?.id && text) {
         try {
-          const responseMessagesWithoutIncompleteToolCalls =
-            response.messages.filter((message) => {
-              if (message.role === "assistant") {
-                const hasIncompleteToolCall = message.content.some(
-                  (content) =>
-                    content.type === "tool-call" &&
-                    response.messages.find(
-                      (m) =>
-                        m.role === "tool" &&
-                        m.content.some(
-                          (c) =>
-                            c.type === "tool-result" &&
-                            c.toolCallId === content.toolCallId,
-                        ),
-                    ) === undefined,
-                );
+          const assistantMessage = createMessage({
+            chatId: id,
+            role: "assistant",
+            content: {
+              id: generateUUID(),
+              role: "assistant",
+              parts: [{ type: "text", text }],
+              attachments: [],
+              createdAt: new Date().toISOString(),
+            } as any,
+          });
 
-                return !hasIncompleteToolCall;
-              }
-
-              return message.role === "tool";
-            });
-
-          const responseMessages = responseMessagesWithoutIncompleteToolCalls.map(
-            (message) =>
-              createMessage({
-                chatId: id,
-                role: message.role,
-                content: message,
-              }),
-          );
-
-          await saveMessages({ messages: responseMessages });
+          await saveMessages({ messages: [assistantMessage] });
         } catch (error) {
-          console.error("Failed to save chat:", error);
+          console.error("Failed to save assistant message:", error);
         }
       }
     },
