@@ -10,17 +10,16 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log("Received request body:", JSON.stringify(body, null, 2));
+    console.log("📨 Received request");
 
     const { 
       message, 
       selectedChatModel = "chat-model",
-      id: chatId,
     } = body;
 
     // Validate we have a message
     if (!message) {
-      console.error("No message in request");
+      console.error("❌ No message in request");
       return new Response(
         JSON.stringify({ error: "No message provided" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -28,27 +27,29 @@ export async function POST(req: Request) {
     }
 
     // Convert the single message with parts to AI SDK format
+    let messageContent = "";
+    
+    for (const part of message.parts) {
+      if (part.type === "text") {
+        messageContent += part.text;
+      }
+    }
+
+    if (!messageContent.trim()) {
+      console.error("❌ Empty message content");
+      return new Response(
+        JSON.stringify({ error: "Message content is empty" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const convertedMessage = {
-      role: message.role,
-      content: message.parts
-        .map((part: any) => {
-          if (part.type === "text") {
-            return part.text;
-          }
-          if (part.type === "file") {
-            return {
-              type: "image",
-              image: part.url,
-            };
-          }
-          return null;
-        })
-        .filter(Boolean)
-        .join("\n"),
+      role: message.role as "user" | "assistant",
+      content: messageContent,
     };
 
-    console.log("Converted message:", convertedMessage);
-    console.log("Using model:", selectedChatModel);
+    console.log("✅ Using model:", selectedChatModel);
+    console.log("✅ Message:", messageContent.substring(0, 100) + "...");
 
     const result = streamText({
       model: model.languageModel(selectedChatModel),
@@ -57,32 +58,33 @@ export async function POST(req: Request) {
       tools: {
         getWeather,
       },
-      experimental_telemetry: {
-        isEnabled: false,
-      },
-      onFinish: ({ usage }) => {
-        console.log("Token usage:", usage);
-      },
+      temperature: 0.7,
+      maxTokens: 2000,
     });
 
-    // Use the correct method for AI SDK 5.0.26
+    console.log("✅ Streaming response...");
+    
+    // Return the text stream
     return result.toTextStreamResponse();
     
   } catch (error) {
-    console.error("Chat Route Error:", error);
+    console.error("💥 Chat Route Error:", error);
     
     // Provide detailed error information
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorDetails = {
-      error: "Failed to process chat request",
-      details: errorMessage,
-      timestamp: new Date().toISOString(),
-    };
+    const errorStack = error instanceof Error ? error.stack : undefined;
     
-    console.error("Error details:", errorDetails);
+    console.error("Error details:", {
+      message: errorMessage,
+      stack: errorStack,
+    });
     
     return new Response(
-      JSON.stringify(errorDetails),
+      JSON.stringify({
+        error: "Failed to process chat request",
+        details: errorMessage,
+        timestamp: new Date().toISOString(),
+      }),
       { 
         status: 500, 
         headers: { "Content-Type": "application/json" } 
