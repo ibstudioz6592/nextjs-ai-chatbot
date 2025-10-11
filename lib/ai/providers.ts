@@ -9,6 +9,7 @@ if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
 
 // Create a Groq provider using OpenAI compatibility
 const groq = createOpenAI({
+  name: 'groq',
   baseURL: "https://api.groq.com/openai/v1",
   apiKey: process.env.GROQ_API_KEY || '',
 });
