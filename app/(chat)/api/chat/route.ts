@@ -6,6 +6,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import {
   createMessage,
   getChatById,
+  getMessagesByChatId,
   saveChat,
   saveMessages,
 } from "@/lib/db/queries";
@@ -42,7 +43,8 @@ export async function POST(request: Request) {
 
   await saveMessages({ messages: [userMessage] });
 
-  const allMessages = [...(chat?.messages ?? []), userMessage];
+  const existingMessages = chat ? await getMessagesByChatId({ id }) : [];
+  const allMessages = [...existingMessages, userMessage];
 
   const result = streamText({
     model: model.languageModel(selectedChatModel),
