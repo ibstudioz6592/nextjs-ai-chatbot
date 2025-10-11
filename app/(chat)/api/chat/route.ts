@@ -11,6 +11,7 @@ import {
   saveMessages,
 } from "@/lib/db/queries";
 import type { ChatMessage } from "@/lib/types";
+import { convertToUIMessages } from "@/lib/utils";
 
 export const maxDuration = 60;
 
