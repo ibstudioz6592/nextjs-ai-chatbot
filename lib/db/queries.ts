@@ -20,6 +20,7 @@ import { genSaltSync, hashSync } from "bcrypt-ts";
 import {
   user,
   chat,
+  type Chat,
   type User,
   message,
   vote,
