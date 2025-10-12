@@ -57,7 +57,7 @@ export function SettingsForm({ user }: { user: NextAuthUser }) {
             <Switch
               id="theme-mode"
               checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              onCheckedChange={(checked: boolean) => setTheme(checked ? "dark" : "light")}
             />
           </div>
         </CardContent>
@@ -80,7 +80,7 @@ export function SettingsForm({ user }: { user: NextAuthUser }) {
             <Switch
               id="email-notifications"
               defaultChecked={false}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean) => {
                 toast({
                   type: "success",
                   description: checked
@@ -101,7 +101,7 @@ export function SettingsForm({ user }: { user: NextAuthUser }) {
             <Switch
               id="chat-notifications"
               defaultChecked={true}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean) => {
                 toast({
                   type: "success",
                   description: checked
@@ -131,7 +131,7 @@ export function SettingsForm({ user }: { user: NextAuthUser }) {
             <Switch
               id="save-history"
               defaultChecked={true}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean) => {
                 toast({
                   type: "success",
                   description: checked
@@ -152,7 +152,7 @@ export function SettingsForm({ user }: { user: NextAuthUser }) {
             <Switch
               id="analytics"
               defaultChecked={true}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean) => {
                 toast({
                   type: "success",
                   description: checked
