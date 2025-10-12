@@ -430,11 +430,11 @@ function PureModelSelectorCompact({
         className="flex h-8 items-center gap-1.5 rounded-xl border-0 bg-background px-2 text-foreground shadow-none transition-all duration-200 hover:scale-105 hover:bg-accent/80 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-9 sm:gap-2 sm:px-3"
         type="button"
       >
-        <CpuIcon size={14} className="sm:h-4 sm:w-4" />
+        <CpuIcon size={16} />
         <span className="hidden text-xs font-medium sm:block">
           {selectedModel?.name}
         </span>
-        <ChevronDownIcon size={12} className="sm:h-3.5 sm:w-3.5" />
+        <ChevronDownIcon size={14} />
       </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
         <div className="flex flex-col gap-px">

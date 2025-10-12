@@ -34,7 +34,7 @@ function PureChatHeader({
           }}
           variant="outline"
         >
-          <PlusIcon size={14} className="sm:h-4 sm:w-4" />
+          <PlusIcon size={16} />
           <span className="md:sr-only">New Chat</span>
         </Button>
       )}

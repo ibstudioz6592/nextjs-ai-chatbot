@@ -57,7 +57,7 @@ export function ModelSelector({
           variant="outline"
         >
           <span className="truncate">{selectedChatModel?.name}</span>
-          <ChevronDownIcon size={14} className="sm:h-4 sm:w-4" />
+          <ChevronDownIcon size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
