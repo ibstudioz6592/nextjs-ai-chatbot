@@ -12,12 +12,12 @@ type UpdateDocumentProps = {
 
 export const updateDocument = ({ session, dataStream }: UpdateDocumentProps) =>
   tool({
-    description: "Update a document with the given description.",
+    description: "Update an existing artifact/document based on user feedback or requests. Use this when users ask to modify, improve, or change an existing artifact. The system will regenerate the content with the requested changes.",
     inputSchema: z.object({
-      id: z.string().describe("The ID of the document to update"),
+      id: z.string().describe("The ID of the document/artifact to update"),
       description: z
         .string()
-        .describe("The description of changes that need to be made"),
+        .describe("Clear description of what changes to make (e.g., 'add a dark mode toggle', 'make it more concise', 'add error handling')"),
     }),
     execute: async ({ id, description }) => {
       const document = await getDocumentById({ id });
