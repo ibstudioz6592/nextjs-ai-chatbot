@@ -2,7 +2,10 @@ import { convertToModelMessages, streamText } from "ai";
 import { auth } from "@/app/(auth)/auth";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { model } from "@/lib/ai/providers";
+import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
+import { updateDocument } from "@/lib/ai/tools/update-document";
 import {
   createMessage,
   getChatById,
@@ -46,14 +49,17 @@ export async function POST(request: Request) {
   const existingUIMessages = convertToUIMessages(existingMessages);
   const allMessages = [...existingUIMessages, message];
 
-  const result = streamText({
+  const result = await streamText({
     model: model.languageModel(selectedChatModel),
     system:
-      "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information.",
+      "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
     messages: convertToModelMessages(allMessages),
-    tools: {
+    tools: (context) => ({
       getWeather,
-    },
+      createDocument: createDocument({ session, dataStream: context.dataStream }),
+      updateDocument: updateDocument({ session, dataStream: context.dataStream }),
+      requestSuggestions: requestSuggestions({ session, dataStream: context.dataStream }),
+    }),
     onFinish: async ({ text }) => {
       if (session.user?.id && text) {
         try {
@@ -81,5 +87,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return result.toTextStreamResponse();
+  return result.toDataStreamResponse();
 }
