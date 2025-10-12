@@ -24,10 +24,11 @@ export const Greeting = () => {
           <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-1 sm:size-16 sm:ring-offset-2 dark:ring-offset-zinc-900">
             <Image
               src={session.user.image || `https://avatar.vercel.sh/${session.user.email}`}
-              alt="User Avatar"
-              width={48}
-              height={48}
-              className="rounded-full object-cover sm:h-16 sm:w-16"
+              alt={session.user.name || "User"}
+              width={64}
+              height={64}
+              className="size-full rounded-full object-cover"
+              unoptimized
             />
           </div>
         </motion.div>

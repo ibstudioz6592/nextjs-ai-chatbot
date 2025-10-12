@@ -111,10 +111,11 @@ const PurePreviewMessage = ({
           <div className="order-2 -mt-1 flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-1 sm:size-8 sm:ring-offset-2 dark:ring-offset-zinc-900">
             <Image
               src={session.user.image || `https://avatar.vercel.sh/${session.user.email}`}
-              alt="User Avatar"
-              width={28}
-              height={28}
-              className="rounded-full object-cover sm:h-8 sm:w-8"
+              alt={session.user.name || "User"}
+              width={32}
+              height={32}
+              className="size-full rounded-full object-cover"
+              unoptimized
             />
           </div>
         )}

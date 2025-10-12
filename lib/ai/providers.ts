@@ -1,36 +1,42 @@
 // lib/ai/providers.ts
-import { groq } from "@ai-sdk/groq";
+import { createGroq } from "@ai-sdk/groq";
 import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
+import { getGroqApiKey } from "./groq-key-rotation";
 
-// Validate API key only on server-side
-if (typeof window === 'undefined' && !process.env.GROQ_API_KEY) {
-  console.error("❌ GROQ_API_KEY is not set in environment variables");
-  throw new Error("GROQ_API_KEY environment variable is required");
-}
+// Get API key with rotation support
+const getGroqProvider = () => {
+  const apiKey = getGroqApiKey();
+  return createGroq({ apiKey });
+};
+
+// Create a function to get fresh groq instance with current key
+const getGroqModel = (modelName: string) => {
+  return getGroqProvider()(modelName);
+};
 
 const languageModels = {
-  "chat-model-lite": groq("llama-3.1-8b-instant"),
-  "chat-model": groq("llama-3.3-70b-versatile"),
+  "chat-model-lite": getGroqModel("llama-3.1-8b-instant"),
+  "chat-model": getGroqModel("llama-3.3-70b-versatile"),
   "chat-model-reasoning": wrapLanguageModel({
     middleware: extractReasoningMiddleware({
       tagName: "think",
     }),
-    model: groq("deepseek-r1-distill-llama-70b"),
+    model: getGroqModel("deepseek-r1-distill-llama-70b"),
   }),
-  "llama-3.1-8b-instant": groq("llama-3.1-8b-instant"),
+  "llama-3.1-8b-instant": getGroqModel("llama-3.1-8b-instant"),
   "deepseek-r1-distill-llama-70b": wrapLanguageModel({
     middleware: extractReasoningMiddleware({
       tagName: "think",
     }),
-    model: groq("deepseek-r1-distill-llama-70b"),
+    model: getGroqModel("deepseek-r1-distill-llama-70b"),
   }),
-  "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
-  "title-model": groq("llama-3.1-8b-instant"),
-  "artifact-model": groq("llama-3.3-70b-versatile"),
+  "llama-3.3-70b-versatile": getGroqModel("llama-3.3-70b-versatile"),
+  "title-model": getGroqModel("llama-3.1-8b-instant"),
+  "artifact-model": getGroqModel("llama-3.3-70b-versatile"),
 };
 
 export const model = customProvider({
