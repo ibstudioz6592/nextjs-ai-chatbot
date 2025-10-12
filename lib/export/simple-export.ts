@@ -142,6 +142,9 @@ export function exportToPDF(options: ExportOptions): void {
     const lines = content.split('\n');
     
     let pageNum = 1;
+    let inCodeBlock = false;
+    let codeBlockLines: string[] = [];
+    let codeLanguage = '';
     
     for (const line of lines) {
       if (yPosition > pageHeight - 25) {
@@ -155,6 +158,69 @@ export function exportToPDF(options: ExportOptions): void {
         doc.setFont('helvetica', 'normal');
       }
 
+      // Handle code blocks
+      if (line.startsWith('```')) {
+        if (!inCodeBlock) {
+          // Start code block
+          inCodeBlock = true;
+          codeLanguage = line.substring(3).trim();
+          codeBlockLines = [];
+          continue;
+        } else {
+          // End code block - render it
+          inCodeBlock = false;
+          
+          // Draw code block background
+          const codeHeight = codeBlockLines.length * 5 + 10;
+          doc.setFillColor(245, 245, 245);
+          doc.roundedRect(margin, yPosition - 3, contentWidth, codeHeight, 2, 2, 'F');
+          
+          // Draw border
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.3);
+          doc.roundedRect(margin, yPosition - 3, contentWidth, codeHeight, 2, 2, 'S');
+          
+          // Language label
+          if (codeLanguage) {
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont('courier', 'bold');
+            doc.text(codeLanguage.toUpperCase(), margin + 3, yPosition + 1);
+            yPosition += 6;
+          } else {
+            yPosition += 3;
+          }
+          
+          // Render code lines
+          doc.setFontSize(9);
+          doc.setTextColor(40, 40, 40);
+          doc.setFont('courier', 'normal');
+          
+          for (const codeLine of codeBlockLines) {
+            const codeTextLines = doc.splitTextToSize(codeLine || ' ', contentWidth - 10);
+            doc.text(codeTextLines, margin + 5, yPosition);
+            yPosition += codeTextLines.length * 5;
+          }
+          
+          yPosition += 7;
+          
+          // Reset formatting
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          
+          codeBlockLines = [];
+          codeLanguage = '';
+          continue;
+        }
+      }
+      
+      // If inside code block, collect lines
+      if (inCodeBlock) {
+        codeBlockLines.push(line);
+        continue;
+      }
+      
       if (line.trim() === '') {
         yPosition += 5;
         continue;

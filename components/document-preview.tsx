@@ -212,20 +212,29 @@ const PureDocumentHeader = ({
   kind: ArtifactKind;
   isStreaming: boolean;
 }) => (
-  <div className="flex flex-row items-start justify-between gap-2 rounded-t-2xl border border-b-0 p-4 sm:items-center dark:border-zinc-700 dark:bg-muted">
+  <div className="flex flex-row items-start justify-between gap-3 rounded-t-2xl border border-b-0 bg-gradient-to-r from-zinc-50 to-white p-4 sm:items-center dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-800">
     <div className="flex flex-row items-start gap-3 sm:items-center">
-      <div className="text-muted-foreground">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md">
         {isStreaming ? (
           <div className="animate-spin">
             <LoaderIcon />
           </div>
         ) : kind === "image" ? (
           <ImageIcon />
+        ) : kind === "code" ? (
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
         ) : (
-          <FileIcon />
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
         )}
       </div>
-      <div className="-translate-y-1 font-medium sm:translate-y-0">{title}</div>
+      <div className="flex flex-col">
+        <div className="font-semibold text-sm">{title}</div>
+        <div className="text-xs text-muted-foreground capitalize">{kind} artifact</div>
+      </div>
     </div>
     <div className="w-8" />
   </div>
