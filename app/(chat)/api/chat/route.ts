@@ -62,8 +62,14 @@ export async function POST(request: Request) {
       const result = streamText({
         model: model.languageModel(selectedChatModel),
         system:
-          "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
+          "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information.\n\nWhen users ask you to create code, documents, spreadsheets, or other content, you MUST use the createDocument tool to generate interactive artifacts. For example:\n- If asked to create code/components, use createDocument with kind='code'\n- If asked to write documents/articles, use createDocument with kind='text'\n- If asked to create spreadsheets/tables, use createDocument with kind='sheet'\n\nAlways use the tools to create artifacts instead of just showing code in your response.",
         messages: convertToModelMessages(uiMessages),
+        experimental_activeTools: [
+          "getWeather",
+          "createDocument",
+          "updateDocument",
+          "requestSuggestions",
+        ],
         tools: {
           getWeather,
           createDocument: createDocument({ session, dataStream }),
