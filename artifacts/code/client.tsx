@@ -104,7 +104,18 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     return (
       <>
         {metadata?.showPreview && isHTML ? (
-          <div className="h-full w-full">
+          <div className="relative h-full w-full">
+            <div className="absolute left-4 top-4 z-10">
+              <button
+                onClick={() => setMetadata({ ...metadata, showPreview: false })}
+                className="flex items-center gap-2 rounded-lg bg-black/70 px-3 py-2 text-sm text-white backdrop-blur-sm hover:bg-black/80 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Back to Code
+              </button>
+            </div>
             <iframe
               srcDoc={content}
               className="h-full w-full border-0"

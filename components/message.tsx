@@ -72,26 +72,25 @@ const PurePreviewMessage = ({
             className="-mt-1 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900"
             animate={isLoading ? {
               boxShadow: [
-                "0 0 0 0 rgba(59, 130, 246, 0.7)",
-                "0 0 0 10px rgba(59, 130, 246, 0)",
+                "0 0 0 0 rgba(59, 130, 246, 0.4)",
+                "0 0 0 6px rgba(59, 130, 246, 0)",
                 "0 0 0 0 rgba(59, 130, 246, 0)",
               ],
             } : {}}
             transition={{
-              duration: 1.5,
+              duration: 2,
               repeat: isLoading ? Number.POSITIVE_INFINITY : 0,
               ease: "easeInOut",
             }}
           >
             <motion.div
               animate={isLoading ? {
-                scale: [1, 1.1, 1],
-                rotate: [0, 360],
+                opacity: [1, 0.7, 1],
               } : {}}
               transition={{
-                duration: 2,
+                duration: 1.5,
                 repeat: isLoading ? Number.POSITIVE_INFINITY : 0,
-                ease: "linear",
+                ease: "easeInOut",
               }}
               className="relative size-full"
             >

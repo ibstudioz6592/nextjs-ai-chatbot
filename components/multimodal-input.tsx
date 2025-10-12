@@ -306,7 +306,7 @@ function PureMultimodalInput({
             maxHeight={200}
             minHeight={48}
             onChange={handleInput}
-            placeholder="Ask anything..."
+            placeholder="Ask anything to AJ..."
             ref={textareaRef}
             rows={1}
             value={input}
