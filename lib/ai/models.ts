@@ -11,16 +11,16 @@ export const chatModels: ChatModel[] = [
   {
     id: 'chat-model-lite',
     name: 'Lynxa Lite',
-    description: '⚡ Fast & beautifully formatted responses for everyday tasks - Perfect for quick questions',
+    description: '⚡ ChatGPT-style fast responses - Perfect for daily conversations and quick questions (No artifacts)',
   },
   {
     id: 'chat-model',
     name: 'Lynxa Pro',
-    description: '🚀 High-performance model for complex tasks, coding, and detailed analysis',
+    description: '🚀 Powerful model with artifacts - Best for coding, complex tasks, and content creation',
   },
   {
     id: 'chat-model-reasoning',
     name: 'Lynxa Reasoning',
-    description: '🧠 Shows step-by-step thinking process - Best for problem-solving and deep analysis',
+    description: '🧠 Fast detailed analysis with artifacts - Shows thinking process, perfect for learning and problem-solving',
   },
 ];
