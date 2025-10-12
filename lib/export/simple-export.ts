@@ -102,7 +102,7 @@ export function exportToPDF(options: ExportOptions): void {
     // Add header to first page
     addHeader(1);
 
-    yPosition = 45;
+    yPosition = 50;
     
     // Document Title
     doc.setTextColor(0, 0, 0);
@@ -129,11 +129,15 @@ export function exportToPDF(options: ExportOptions): void {
     let pageNum = 1;
     
     for (const line of lines) {
-      if (yPosition > pageHeight - 30) {
+      if (yPosition > pageHeight - 25) {
         doc.addPage();
         pageNum++;
         addHeader(pageNum);
-        yPosition = 45;
+        yPosition = 50;
+        // Reset text color after new page
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
       }
 
       if (line.trim() === '') {
@@ -143,41 +147,49 @@ export function exportToPDF(options: ExportOptions): void {
 
       // Handle headers and formatting
       if (line.startsWith('# ')) {
-        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         const text = line.substring(2).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
         doc.text(textLines, margin, yPosition);
-        yPosition += textLines.length * 8 + 3;
+        yPosition += textLines.length * 9 + 5;
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
       } else if (line.startsWith('## ')) {
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         const text = line.substring(3).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
         doc.text(textLines, margin, yPosition);
-        yPosition += textLines.length * 7 + 2;
+        yPosition += textLines.length * 7 + 4;
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
       } else if (line.startsWith('### ')) {
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         const text = line.substring(4).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
         doc.text(textLines, margin, yPosition);
-        yPosition += textLines.length * 6 + 2;
+        yPosition += textLines.length * 6 + 3;
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
       } else if (line.startsWith('- ') || line.startsWith('* ')) {
+        doc.setTextColor(0, 0, 0);
         const text = `• ${line.substring(2)}`;
         const textLines = doc.splitTextToSize(text, contentWidth - 5);
         doc.text(textLines, margin + 5, yPosition);
-        yPosition += textLines.length * 6;
+        yPosition += textLines.length * 6 + 1;
       } else {
+        doc.setTextColor(0, 0, 0);
         const textLines = doc.splitTextToSize(line, contentWidth);
         doc.text(textLines, margin, yPosition);
-        yPosition += textLines.length * 6;
+        yPosition += textLines.length * 6 + 1;
       }
     }
 
