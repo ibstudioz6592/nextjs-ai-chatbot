@@ -34,11 +34,12 @@ const languageModels = typeof window === 'undefined'
   ? {
       "chat-model-lite": createRotatingGroqModel("llama-3.1-8b-instant"),
       "chat-model": createRotatingGroqModel("llama-3.3-70b-versatile"),
+      // Using Llama 3.3 70B for reasoning (DeepSeek R1 may not be available on all Groq accounts)
       "chat-model-reasoning": wrapLanguageModel({
         middleware: extractReasoningMiddleware({
           tagName: "think",
         }),
-        model: createRotatingGroqModel("deepseek-r1-distill-llama-70b"),
+        model: createRotatingGroqModel("llama-3.3-70b-versatile"),
       }),
       "llama-3.1-8b-instant": createRotatingGroqModel("llama-3.1-8b-instant"),
       "deepseek-r1-distill-llama-70b": wrapLanguageModel({
