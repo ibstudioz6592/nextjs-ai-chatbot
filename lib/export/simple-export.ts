@@ -11,7 +11,6 @@ export type ExportOptions = {
 // Export as PDF using jsPDF
 export async function exportToPDF(options: ExportOptions): Promise<void> {
   try {
-    const { jsPDF } = await import('jspdf');
     const { title, content, date = new Date() } = options;
     
     const doc = new jsPDF({
@@ -22,81 +21,72 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    
-    // Perplexity-style sidebar branding
-    const sidebarWidth = 50;
-    const contentMargin = sidebarWidth + 15;
-    const contentWidth = pageWidth - contentMargin - 15;
-    let yPosition = 20;
+    const margin = 20;
+    const contentWidth = pageWidth - 2 * margin;
+    let yPosition = 30;
 
-    // Add sidebar to all pages
-    const addSidebarBranding = (pageNum: number) => {
-      // Sidebar background with gradient effect
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
-      
-      // Accent line
-      doc.setFillColor(59, 130, 246);
-      doc.rect(sidebarWidth - 2, 0, 2, pageHeight, 'F');
-      
-      // Logo at top of sidebar
+    // Perplexity-style centered header with logo
+    const addHeader = () => {
+      // Clean white background
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(10, 15, 30, 30, 3, 3, 'F');
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      
+      // Centered logo area
+      const logoX = pageWidth / 2;
+      const logoY = 20;
+      
+      // Logo icon - stylized "AJ" in a geometric shape
+      doc.setFillColor(37, 99, 235);
+      doc.circle(logoX - 15, logoY, 8, 'F');
+      doc.circle(logoX + 15, logoY, 8, 'F');
+      
+      // Connect circles with rectangle
+      doc.setFillColor(37, 99, 235);
+      doc.rect(logoX - 15, logoY - 8, 30, 16, 'F');
+      
+      // White "AJ" text on logo
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AJ', logoX, logoY + 4, { align: 'center' });
+      
+      // Brand name below logo
       doc.setTextColor(37, 99, 235);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('AJ', 18, 35);
+      doc.text('AJ STUDIOZ', logoX, logoY + 18, { align: 'center' });
       
-      // Brand text (vertical)
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
+      // Tagline
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Student Learning Platform', logoX, logoY + 25, { align: 'center' });
       
-      // Rotate text for sidebar
-      doc.saveGraphicsState();
-      doc.setTextColor(255, 255, 255);
-      doc.text('AJ STUDIOZ', 15, pageHeight / 2, { angle: 90 });
-      doc.restoreGraphicsState();
-      
-      // Page number in sidebar
-      doc.setFontSize(12);
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.text(String(pageNum), 20, pageHeight - 20, { align: 'center' });
-      
-      // Decorative elements
-      doc.setDrawColor(255, 255, 255);
+      // Separator line
+      doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(0.5);
-      doc.line(10, 55, 40, 55);
-      doc.line(10, pageHeight - 35, 40, pageHeight - 35);
+      doc.line(margin, 58, pageWidth - margin, 58);
     };
 
-    // Add sidebar to first page
-    addSidebarBranding(1);
-    
-    // Header title area
-    doc.setFillColor(248, 250, 252);
-    doc.rect(sidebarWidth, 0, pageWidth - sidebarWidth, 50, 'F');
+    // Add header to first page
+    addHeader();
 
+    yPosition = 70;
+    
     // Document Title
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(18);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     const titleLines = doc.splitTextToSize(title, contentWidth);
-    doc.text(titleLines, contentMargin, yPosition);
-    yPosition += titleLines.length * 8 + 5;
+    doc.text(titleLines, margin, yPosition);
+    yPosition += titleLines.length * 10 + 5;
 
     // Date
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text(`Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, contentMargin, yPosition);
-    yPosition += 10;
-
-    // Separator line
-    doc.setDrawColor(200, 200, 200);
-    doc.line(contentMargin, yPosition, pageWidth - 15, yPosition);
-    yPosition += 10;
+    doc.text(`Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, margin, yPosition);
+    yPosition += 15;
 
     // Content
     doc.setFontSize(11);
@@ -105,14 +95,11 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
     
     const lines = content.split('\n');
     
-    let pageNum = 1;
-    
     for (const line of lines) {
       if (yPosition > pageHeight - 30) {
         doc.addPage();
-        pageNum++;
-        addSidebarBranding(pageNum);
-        yPosition = 20;
+        addHeader();
+        yPosition = 70;
       }
 
       if (line.trim() === '') {
@@ -126,7 +113,7 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(2).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, contentMargin, yPosition);
+        doc.text(textLines, margin, yPosition);
         yPosition += textLines.length * 8 + 3;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
@@ -135,7 +122,7 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(3).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, contentMargin, yPosition);
+        doc.text(textLines, margin, yPosition);
         yPosition += textLines.length * 7 + 2;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
@@ -144,29 +131,33 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(4).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, contentMargin, yPosition);
+        doc.text(textLines, margin, yPosition);
         yPosition += textLines.length * 6 + 2;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
       } else if (line.startsWith('- ') || line.startsWith('* ')) {
         const text = `• ${line.substring(2)}`;
         const textLines = doc.splitTextToSize(text, contentWidth - 5);
-        doc.text(textLines, contentMargin + 5, yPosition);
+        doc.text(textLines, margin + 5, yPosition);
         yPosition += textLines.length * 6;
       } else {
         const textLines = doc.splitTextToSize(line, contentWidth);
-        doc.text(textLines, contentMargin, yPosition);
+        doc.text(textLines, margin, yPosition);
         yPosition += textLines.length * 6;
       }
     }
 
-    // Footer branding text at bottom
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont('helvetica', 'italic');
-    doc.text('Generated by AJ STUDIOZ - Student Learning Platform', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    // Footer with page number
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    }
 
-    const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.pdf`;
+    const filename = `${title.replace(/[^a-z0-9\s]/gi, '_').toLowerCase()}.pdf`;
     doc.save(filename);
   } catch (error) {
     console.error('PDF export failed:', error);
@@ -199,40 +190,60 @@ export function exportToWord(options: ExportOptions): void {
           line-height: 1.6;
         }
         .header {
-          background: linear-gradient(135deg, #2563EB 0%, #1e40af 100%);
-          color: white;
-          padding: 25px 20px;
-          margin-bottom: 20px;
+          background: white;
+          text-align: center;
+          padding: 30px 20px;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #e5e7eb;
+        }
+        .logo-container {
           display: flex;
+          justify-content: center;
           align-items: center;
-          gap: 15px;
-          border-radius: 8px;
+          gap: 10px;
+          margin-bottom: 15px;
         }
         .logo {
-          background-color: white;
-          color: #2563EB;
-          width: 50px;
-          height: 50px;
+          background-color: #2563EB;
+          color: white;
+          width: 60px;
+          height: 60px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 20pt;
-          font-weight: bold;
-          border-radius: 8px;
-          flex-shrink: 0;
-        }
-        .brand-info {
-          flex-grow: 1;
-        }
-        .header h1 {
-          margin: 0;
           font-size: 24pt;
           font-weight: bold;
+          border-radius: 50%;
+          position: relative;
         }
-        .header p {
-          margin: 5px 0 0 0;
-          font-size: 10pt;
-          opacity: 0.9;
+        .logo::before {
+          content: '';
+          position: absolute;
+          width: 30px;
+          height: 30px;
+          background: #2563EB;
+          border-radius: 50%;
+          left: -15px;
+        }
+        .logo::after {
+          content: '';
+          position: absolute;
+          width: 30px;
+          height: 30px;
+          background: #2563EB;
+          border-radius: 50%;
+          right: -15px;
+        }
+        .brand-name {
+          color: #2563EB;
+          font-size: 28pt;
+          font-weight: bold;
+          margin: 10px 0 5px 0;
+        }
+        .brand-tagline {
+          color: #6b7280;
+          font-size: 11pt;
+          margin: 0;
         }
         .title {
           font-size: 18pt;
@@ -289,11 +300,11 @@ export function exportToWord(options: ExportOptions): void {
     </head>
     <body>
       <div class="header">
-        <div class="logo">AJ</div>
-        <div class="brand-info">
-          <h1>AJ STUDIOZ</h1>
-          <p>Student Learning Platform</p>
+        <div class="logo-container">
+          <div class="logo">AJ</div>
         </div>
+        <h1 class="brand-name">AJ STUDIOZ</h1>
+        <p class="brand-tagline">Student Learning Platform</p>
       </div>
       <div class="title">${title}</div>
       <div class="date">Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
@@ -309,16 +320,14 @@ export function exportToWord(options: ExportOptions): void {
   `;
 
   // Create blob and download
-  const blob = new Blob(['\ufeff', wordHTML], {
-    type: 'application/msword'
-  });
-  
-  const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.doc`;
+  const blob = new Blob([wordHTML], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const filename = `${title.replace(/[^a-z0-9\s]/gi, '_').toLowerCase()}.doc`;
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
+  link.href = url;
   link.download = filename;
   link.click();
-  URL.revokeObjectURL(link.href);
+  URL.revokeObjectURL(url);
 }
 
 // Simple markdown to HTML converter
