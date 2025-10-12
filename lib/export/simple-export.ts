@@ -1,5 +1,7 @@
-// Simple Export Functions with AJ STUDIOZ Branding - Client-side only
+// Simple Export Functions with AJ STUDIOZ// PDF and Word Export Utilities
 'use client';
+
+import jsPDF from 'jspdf';
 
 export type ExportOptions = {
   title: string;
@@ -9,7 +11,7 @@ export type ExportOptions = {
 };
 
 // Export as PDF using jsPDF
-export async function exportToPDF(options: ExportOptions): Promise<void> {
+export function exportToPDF(options: ExportOptions): void {
   try {
     const { title, content, date = new Date() } = options;
     
