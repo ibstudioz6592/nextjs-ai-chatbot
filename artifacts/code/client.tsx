@@ -94,8 +94,12 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     }
   },
   content: ({ metadata, setMetadata, content, ...props }) => {
-    const isHTML = content.trim().toLowerCase().startsWith("<!doctype html") || 
-                   content.trim().toLowerCase().startsWith("<html");
+    const contentLower = content.trim().toLowerCase();
+    const isHTML = contentLower.startsWith("<!doctype html") || 
+                   contentLower.startsWith("<html") ||
+                   contentLower.includes("<html") ||
+                   (contentLower.includes("<body") && contentLower.includes("<head")) ||
+                   (contentLower.includes("<div") || contentLower.includes("<p") || contentLower.includes("<h1"));
 
     return (
       <>
@@ -134,8 +138,12 @@ export const codeArtifact = new Artifact<"code", Metadata>({
       label: "Preview",
       description: "Toggle HTML preview",
       onClick: ({ content, metadata, setMetadata }) => {
-        const isHTML = content.trim().toLowerCase().startsWith("<!doctype html") || 
-                       content.trim().toLowerCase().startsWith("<html");
+        const contentLower = content.trim().toLowerCase();
+        const isHTML = contentLower.startsWith("<!doctype html") || 
+                       contentLower.startsWith("<html") ||
+                       contentLower.includes("<html") ||
+                       (contentLower.includes("<body") && contentLower.includes("<head")) ||
+                       (contentLower.includes("<div") || contentLower.includes("<p") || contentLower.includes("<h1"));
         
         if (!isHTML) {
           toast.error("Preview is only available for HTML code");

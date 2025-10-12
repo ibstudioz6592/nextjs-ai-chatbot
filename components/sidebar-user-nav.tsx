@@ -97,7 +97,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "success", description: "Settings coming soon!" })}
+              onClick={() => router.push("/settings")}
             >
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
