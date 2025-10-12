@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         id: message.id,
         role: "user",
         parts: message.parts,
-        attachments: [],
+        attachments: message.experimental_attachments || [],
         createdAt: new Date(),
       },
     ],
