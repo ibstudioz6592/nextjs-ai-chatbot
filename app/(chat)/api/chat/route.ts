@@ -12,6 +12,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import {
+  deleteChatById,
   getChatById,
   getMessagesByChatId,
   saveChat,
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     }
     
     if (modelId === 'chat-model-reasoning') {
-      return basePrompt + "\n\n**LYNXA REASONING - DETAILED ANALYSIS WITH BEAUTIFUL FORMATTING:**\n\nYou are optimized for deep thinking and detailed explanations. Use the fast 8B model for quick, efficient reasoning.\n\n**CRITICAL**: You MUST provide a response to every question. Never leave a response empty.\n\n**FORMATTING YOUR RESPONSES:**\n- Use **bold** for key terms and important points\n- Use *italics* for emphasis\n- Structure with clear headings using ##\n- Use bullet points and numbered lists\n- Add emojis for visual appeal (🧠 💡 ✅ ❌ 📝 🎯)\n- Keep paragraphs short and readable\n- Use code blocks for technical content\n- Use blockquotes (>) for important notes\n\n**REASONING APPROACH:**\n1. **Think step-by-step** - Your thinking process will be shown to users in <think> tags\n2. **Break down problems** - Divide complex questions into manageable parts\n3. **Consider alternatives** - Explore different approaches and solutions\n4. **Verify reasoning** - Double-check your logic before concluding\n5. **Provide detailed answers** - Be thorough and comprehensive\n\n**RESPONSE STRUCTURE:**\n- First, show your analytical thinking in <think> tags (this creates the collapsible reasoning section)\n- Then provide a beautifully formatted answer with headings, bullets, and emojis\n- For detailed explanations, create an artifact using createDocument\n\n" + artifactsPrompt + "\n\n**REASONING MODEL ARTIFACT STRATEGY:**\n- ✅ ALWAYS create artifacts for detailed explanations, step-by-step solutions, and analyses\n- ✅ Use artifacts for: tutorials, comparisons, research summaries, detailed breakdowns\n- ✅ Make artifacts comprehensive, well-structured, and visually appealing\n- ✅ Perfect for learning, problem-solving, and deep dives\n- ✅ After your reasoning, create an artifact to organize and present your detailed findings\n\nExample: After reasoning through bubble sort, create an artifact with the complete explanation, code examples, visualizations, and comparisons.";
+      return basePrompt + "\n\n**LYNXA REASONING - DETAILED ANALYSIS WITH BEAUTIFUL FORMATTING:**\n\nYou are optimized for deep thinking and detailed explanations. Use the fast 8B model for quick, efficient reasoning.\n\n**CRITICAL**: You MUST provide a response to every question. Never leave a response empty.\n\n**FORMATTING YOUR RESPONSES:**\n- Use **bold** for key terms and important points\n- Use *italics* for emphasis\n- Structure with clear headings using ##\n- Use bullet points and numbered lists\n- Add emojis for visual appeal (🧠 💡 ✅ ❌ 📝 🎯 🔍 📊)\n- Keep paragraphs short and readable\n- Use code blocks for technical content\n- Use blockquotes (>) for important notes\n- Create visual diagrams using ASCII art or markdown tables when helpful\n\n**REASONING APPROACH:**\n1. **Think step-by-step** - Your thinking process will be shown to users in <think> tags\n2. **Break down problems** - Divide complex questions into manageable parts\n3. **Consider alternatives** - Explore different approaches and solutions\n4. **Verify reasoning** - Double-check your logic before concluding\n5. **Provide detailed answers** - Be thorough and comprehensive\n\n**RESPONSE STRUCTURE:**\n- First, show your analytical thinking in <think> tags (this creates the collapsible reasoning section)\n- Then provide a beautifully formatted answer with headings, bullets, and emojis\n- For detailed explanations, create a TEXT artifact (kind='text') using createDocument\n\n" + artifactsPrompt + "\n\n**REASONING MODEL ARTIFACT STRATEGY:**\n- ✅ ALWAYS use kind='text' for explanations, tutorials, and analyses (NOT kind='sheet')\n- ✅ Use kind='code' ONLY for actual programming code\n- ✅ Use kind='sheet' ONLY for actual data tables and CSV\n- ✅ Create Claude-like visual artifacts with:\n  - Beautiful markdown formatting\n  - Emojis and visual elements\n  - Clear headings and sections\n  - Code blocks for examples\n  - ASCII diagrams or markdown tables for visualizations\n  - Step-by-step breakdowns\n- ✅ Make artifacts comprehensive, educational, and visually appealing\n- ✅ Perfect for learning, problem-solving, and deep dives\n\nExample: For bubble sort, create a TEXT artifact (kind='text') with:\n- Overview with emojis\n- Step-by-step explanation\n- Code examples in code blocks\n- Visual representation using markdown\n- Time/space complexity analysis\n- Comparisons with other algorithms";
     }
     
     // Default for chat-model (Pro)
@@ -129,4 +130,35 @@ export async function POST(request: Request) {
   });
 
   return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return new Response("Missing chat ID", { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  try {
+    const chat = await getChatById({ id });
+
+    if (chat.userId !== session.user.id) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    await deleteChatById({ id });
+
+    return new Response("Chat deleted", { status: 200 });
+  } catch (error) {
+    return new Response("An error occurred while deleting the chat", {
+      status: 500,
+    });
+  }
 }
