@@ -75,19 +75,22 @@ export async function POST(request: Request) {
     return basePrompt + artifactsPrompt;
   };
 
+  // Disable tools for Lite model (ChatGPT-style only)
+  const isLiteModel = selectedChatModel === 'chat-model-lite';
+  
   const stream = createUIMessageStream({
     execute: ({ writer: dataStream }) => {
       const result = streamText({
         model: model.languageModel(selectedChatModel),
         system: getSystemPrompt(selectedChatModel),
         messages: convertToModelMessages(uiMessages),
-        experimental_activeTools: [
+        experimental_activeTools: isLiteModel ? [] : [
           "getWeather",
           "createDocument",
           "updateDocument",
           "requestSuggestions",
         ],
-        tools: {
+        tools: isLiteModel ? {} : {
           getWeather,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
