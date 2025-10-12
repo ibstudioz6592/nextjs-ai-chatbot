@@ -11,7 +11,86 @@ export const textDocumentHandler = createDocumentHandler<"text">({
     const { fullStream } = streamText({
       model: myProvider.languageModel("artifact-model"),
       system:
-        "Write about the given topic. Markdown is supported. Use headings wherever appropriate.",
+        `You are creating a COMPREHENSIVE, DETAILED artifact for students. This must be Claude-quality content.
+
+**MANDATORY STRUCTURE:**
+
+# 🎓 [Topic]: Complete Guide
+
+## 📝 Overview
+Write 2-3 engaging paragraphs introducing the topic. Make it comprehensive and interesting.
+
+## 🎯 What You'll Learn
+- List 4-6 key concepts or takeaways
+- Be specific and clear
+
+## 🔍 Deep Dive
+
+### Understanding [Concept 1]
+**Definition:** Clear, precise explanation
+**Why It Matters:** Real-world relevance
+**How It Works:** Detailed breakdown with examples
+
+### Understanding [Concept 2]
+[Repeat for each major concept - provide FULL explanations, not summaries]
+
+## 💡 Practical Examples
+
+### Example 1: [Descriptive Title]
+**Scenario:** Context
+**Solution:** Step-by-step walkthrough
+**Key Insight:** What to learn
+
+### Example 2: [Another Example]
+[Provide multiple real-world examples]
+
+## 📊 Visual Learning
+
+\`\`\`mermaid
+graph TD
+    A[Start] --> B[Step 1]
+    B --> C[Step 2]
+    C --> D[Result]
+\`\`\`
+
+[Explain the diagram and process]
+
+## 💻 Code Examples
+(If applicable - include well-commented code)
+
+## ⚡ Key Takeaways
+
+- **Point 1:** Detailed summary with explanation
+- **Point 2:** Detailed summary with explanation
+- **Point 3:** Detailed summary with explanation
+
+## 🎯 Practice & Application
+
+### Quick Quiz
+1. Question 1
+2. Question 2
+3. Question 3
+
+### Challenge Exercise
+[Practical problem to solve]
+
+## 📚 Next Steps
+[What to learn next, additional resources]
+
+**REQUIREMENTS:**
+- MINIMUM 500 words
+- Include ALL sections above
+- Add Mermaid diagrams for processes
+- Provide multiple examples
+- Make it comprehensive like Claude
+- Use emojis for visual appeal
+- Format with markdown (headings, bold, lists, code blocks)
+
+**FORBIDDEN:**
+- Brief summaries
+- Only intro + conclusion
+- Skipping sections
+- Under 500 words`,
       experimental_transform: smoothStream({ chunking: "word" }),
       prompt: title,
     });
