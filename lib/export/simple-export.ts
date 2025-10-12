@@ -46,54 +46,56 @@ export function exportToPDF(options: ExportOptions): void {
     const contentWidth = pageWidth - 2 * margin;
     let yPosition = 30;
 
-    // Perplexity-style header with logo and branding
+    // Perplexity-style simple header (white background, logo + text)
     const addHeader = (pageNum: number) => {
-      // Blue header bar (like Perplexity)
-      doc.setFillColor(37, 99, 235); // Blue
-      doc.rect(0, 0, pageWidth, 30, 'F');
-      
-      // Logo area (white box)
-      const logoX = 15;
-      const logoY = 8;
-      const logoSize = 14;
-      
+      // Clean white background
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, 'F');
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      
+      // Logo on left
+      const logoX = 15;
+      const logoY = 10;
+      const logoSize = 15;
       
       // Add logo image if available
       if (logoBase64) {
         try {
-          doc.addImage(logoBase64, 'JPEG', logoX + 1, logoY + 1, logoSize - 2, logoSize - 2);
+          doc.addImage(logoBase64, 'JPEG', logoX, logoY, logoSize, logoSize);
         } catch {
-          // Fallback: AJ text
-          doc.setTextColor(220, 38, 38);
+          // Fallback: Red box with AJ
+          doc.setFillColor(220, 38, 38);
+          doc.rect(logoX, logoY, logoSize, logoSize, 'F');
+          doc.setTextColor(255, 255, 255);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
           doc.text('AJ', logoX + logoSize/2, logoY + logoSize/2 + 3, { align: 'center' });
         }
       } else {
-        // Fallback: AJ text
-        doc.setTextColor(220, 38, 38);
+        // Fallback: Red box with AJ
+        doc.setFillColor(220, 38, 38);
+        doc.rect(logoX, logoY, logoSize, logoSize, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text('AJ', logoX + logoSize/2, logoY + logoSize/2 + 3, { align: 'center' });
       }
       
-      // Brand name in header
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      // Brand name next to logo (black text, clean)
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('AJ STUDIOZ', logoX + logoSize + 5, 18);
+      doc.text('AJ STUDIOZ', logoX + logoSize + 5, logoY + 10);
       
-      // Tagline
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Student Learning Platform', logoX + logoSize + 5, 23);
+      // Thin separator line at bottom
+      doc.setDrawColor(230, 230, 230);
+      doc.setLineWidth(0.3);
+      doc.line(margin, 33, pageWidth - margin, 33);
       
-      // Page number on right
+      // Page number on right (small, gray)
       if (pageNum > 0) {
-        doc.setFontSize(10);
-        doc.text(`Page ${pageNum}`, pageWidth - 20, 18, { align: 'right' });
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${pageNum}`, pageWidth - 20, logoY + 10, { align: 'right' });
       }
     };
 
@@ -223,17 +225,15 @@ export function exportToWord(options: ExportOptions): void {
           line-height: 1.6;
         }
         .header {
-          background: #2563EB;
+          background: white;
           padding: 20px;
           margin-bottom: 30px;
           display: flex;
           align-items: center;
           gap: 15px;
+          border-bottom: 1px solid #e5e7eb;
         }
         .logo-container {
-          background: white;
-          padding: 8px;
-          border-radius: 8px;
           width: 60px;
           height: 60px;
           display: flex;
@@ -249,14 +249,9 @@ export function exportToWord(options: ExportOptions): void {
           flex: 1;
         }
         .brand-name {
-          color: white;
+          color: #000;
           font-size: 24pt;
           font-weight: bold;
-          margin: 0 0 5px 0;
-        }
-        .brand-tagline {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 11pt;
           margin: 0;
         }
         .title {
@@ -319,7 +314,6 @@ export function exportToWord(options: ExportOptions): void {
         </div>
         <div class="brand-info">
           <h1 class="brand-name">AJ STUDIOZ</h1>
-          <p class="brand-tagline">Student Learning Platform</p>
         </div>
       </div>
       <div class="title">${title}</div>
