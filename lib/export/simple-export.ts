@@ -31,43 +31,37 @@ export function exportToPDF(options: ExportOptions): void {
     const addHeader = () => {
       // Clean white background
       doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.rect(0, 0, pageWidth, 50, 'F');
       
       // Centered logo area
       const logoX = pageWidth / 2;
-      const logoY = 20;
+      const logoY = 15;
       
-      // Logo icon - stylized "AJ" in a geometric shape
-      doc.setFillColor(37, 99, 235);
-      doc.circle(logoX - 15, logoY, 8, 'F');
-      doc.circle(logoX + 15, logoY, 8, 'F');
-      
-      // Connect circles with rectangle
-      doc.setFillColor(37, 99, 235);
-      doc.rect(logoX - 15, logoY - 8, 30, 16, 'F');
-      
-      // White "AJ" text on logo
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('AJ', logoX, logoY + 4, { align: 'center' });
+      // Add AJ STUDIOZ logo image
+      try {
+        // Logo will be added via base64 - using the actual logo.jpg
+        const logoSize = 20; // 20mm square logo
+        doc.addImage('/logo.jpg', 'JPEG', logoX - logoSize/2, logoY - 5, logoSize, logoSize);
+      } catch (e) {
+        // Fallback to text logo if image fails
+        doc.setFillColor(220, 38, 38); // Red background
+        doc.rect(logoX - 10, logoY - 5, 20, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AJ', logoX, logoY + 8, { align: 'center' });
+      }
       
       // Brand name below logo
-      doc.setTextColor(37, 99, 235);
-      doc.setFontSize(18);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('AJ STUDIOZ', logoX, logoY + 18, { align: 'center' });
-      
-      // Tagline
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Student Learning Platform', logoX, logoY + 25, { align: 'center' });
+      doc.text('AJ STUDIOZ', logoX, logoY + 22, { align: 'center' });
       
       // Separator line
       doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.5);
-      doc.line(margin, 58, pageWidth - margin, 58);
+      doc.setLineWidth(0.3);
+      doc.line(margin, 48, pageWidth - margin, 48);
     };
 
     // Add header to first page
@@ -303,7 +297,7 @@ export function exportToWord(options: ExportOptions): void {
     <body>
       <div class="header">
         <div class="logo-container">
-          <div class="logo">AJ</div>
+          <img src="/logo.jpg" alt="AJ STUDIOZ" style="width: 80px; height: 80px; object-fit: contain;" />
         </div>
         <h1 class="brand-name">AJ STUDIOZ</h1>
         <p class="brand-tagline">Student Learning Platform</p>
