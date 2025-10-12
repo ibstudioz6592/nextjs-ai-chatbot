@@ -94,10 +94,11 @@ export const {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, account }) {
       if (user) {
         token.id = user.id as string;
-        token.type = user.type;
+        // Set type to 'regular' for Google OAuth users, otherwise use user.type
+        token.type = account?.provider === "google" ? "regular" : user.type;
       }
 
       return token;
@@ -114,13 +115,20 @@ export const {
       // For Google OAuth, create user in database if they don't exist
       if (account?.provider === "google" && user.email) {
         try {
-          const existingUsers = await getUser(user.email);
+          let existingUsers = await getUser(user.email);
           if (existingUsers.length === 0) {
             // Create new user for Google OAuth
             await db.insert(userTable).values({
               email: user.email,
               password: null, // No password for OAuth users
             });
+            // Fetch the newly created user to get the ID
+            existingUsers = await getUser(user.email);
+          }
+          // Set user type and ID for Google OAuth users
+          user.type = "regular";
+          if (existingUsers.length > 0) {
+            user.id = existingUsers[0].id;
           }
         } catch (error) {
           console.error("Error creating Google OAuth user:", error);
