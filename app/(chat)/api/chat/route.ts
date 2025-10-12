@@ -1,4 +1,9 @@
-import { convertToModelMessages, streamText } from "ai";
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  streamText,
+} from "ai";
 import { auth } from "@/app/(auth)/auth";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { model } from "@/lib/ai/providers";
@@ -7,7 +12,6 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import {
-  createMessage,
   getChatById,
   getMessagesByChatId,
   saveChat,
@@ -30,12 +34,6 @@ export async function POST(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const userMessage = createMessage({
-    chatId: id,
-    role: "user",
-    content: message,
-  });
-
   const chat = await getChatById({ id });
 
   if (!chat) {
@@ -43,49 +41,66 @@ export async function POST(request: Request) {
     await saveChat({ id, userId: session.user.id, title, visibility: "private" });
   }
 
-  await saveMessages({ messages: [userMessage] });
+  const messagesFromDb = await getMessagesByChatId({ id });
+  const uiMessages = [...convertToUIMessages(messagesFromDb), message];
 
-  const existingMessages = chat ? await getMessagesByChatId({ id }) : [];
-  const existingUIMessages = convertToUIMessages(existingMessages);
-  const allMessages = [...existingUIMessages, message];
+  await saveMessages({
+    messages: [
+      {
+        chatId: id,
+        id: message.id,
+        role: "user",
+        parts: message.parts,
+        attachments: [],
+        createdAt: new Date(),
+      },
+    ],
+  });
 
-  const result = await streamText({
-    model: model.languageModel(selectedChatModel),
-    system:
-      "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
-    messages: convertToModelMessages(allMessages),
-    tools: (context) => ({
-      getWeather,
-      createDocument: createDocument({ session, dataStream: context.dataStream }),
-      updateDocument: updateDocument({ session, dataStream: context.dataStream }),
-      requestSuggestions: requestSuggestions({ session, dataStream: context.dataStream }),
-    }),
-    onFinish: async ({ text }) => {
-      if (session.user?.id && text) {
-        try {
-          const assistantMessage = createMessage({
-            chatId: id,
-            role: "assistant",
-            content: {
-              id: generateUUID(),
-              role: "assistant",
-              parts: [{ type: "text", text }],
-              attachments: [],
-              createdAt: new Date().toISOString(),
-            } as any,
-          });
+  const stream = createUIMessageStream({
+    execute: ({ writer: dataStream }) => {
+      const result = streamText({
+        model: model.languageModel(selectedChatModel),
+        system:
+          "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
+        messages: convertToModelMessages(uiMessages),
+        tools: {
+          getWeather,
+          createDocument: createDocument({ session, dataStream }),
+          updateDocument: updateDocument({ session, dataStream }),
+          requestSuggestions: requestSuggestions({ session, dataStream }),
+        },
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: "stream-text",
+        },
+      });
 
-          await saveMessages({ messages: [assistantMessage] });
-        } catch (error) {
-          console.error("Failed to save assistant message:", error);
-        }
-      }
+      result.consumeStream();
+
+      dataStream.merge(
+        result.toUIMessageStream({
+          sendReasoning: true,
+        })
+      );
     },
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "stream-text",
+    generateId: generateUUID,
+    onFinish: async ({ messages: responseMessages }) => {
+      await saveMessages({
+        messages: responseMessages.map((currentMessage) => ({
+          id: currentMessage.id,
+          role: currentMessage.role,
+          parts: currentMessage.parts,
+          createdAt: new Date(),
+          attachments: [],
+          chatId: id,
+        })),
+      });
+    },
+    onError: () => {
+      return "Oops, an error occurred!";
     },
   });
 
-  return result.toDataStreamResponse();
+  return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
 }
