@@ -2,6 +2,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
@@ -68,7 +69,7 @@ const PurePreviewMessage = ({
       >
         {message.role === "assistant" && (
           <motion.div 
-            className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 ring-2 ring-offset-2 ring-blue-400 dark:ring-offset-zinc-900"
+            className="-mt-1 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900"
             animate={isLoading ? {
               boxShadow: [
                 "0 0 0 0 rgba(59, 130, 246, 0.7)",
@@ -92,9 +93,15 @@ const PurePreviewMessage = ({
                 repeat: isLoading ? Number.POSITIVE_INFINITY : 0,
                 ease: "linear",
               }}
-              className="font-bold text-white text-xs tracking-wider"
+              className="relative size-full"
             >
-              AJ
+              <Image
+                src="/logo.jpg"
+                alt="AI Avatar"
+                width={32}
+                height={32}
+                className="object-cover"
+              />
             </motion.div>
           </motion.div>
         )}

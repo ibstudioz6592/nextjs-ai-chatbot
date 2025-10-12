@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
@@ -33,10 +34,14 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 setOpenMobile(false);
               }}
             >
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
-                <span className="font-bold text-white text-sm tracking-wider">
-                  AJ
-                </span>
+              <div className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                <Image
+                  src="/logo.jpg"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                />
               </div>
               <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
                 AJ STUDIOZ

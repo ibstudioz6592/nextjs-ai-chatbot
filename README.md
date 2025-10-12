@@ -24,7 +24,13 @@
 - [AI SDK](https://ai-sdk.dev/docs/introduction)
   - Unified API for generating text, structured objects, and tool calls with LLMs
   - Hooks for building dynamic chat and generative user interfaces
-  - Supports xAI (default), OpenAI, Fireworks, and other model providers
+  - Supports Groq (default), OpenAI, Fireworks, and other model providers
+- **Artifacts System**
+  - Interactive code editor with syntax highlighting
+  - Live preview for web components
+  - Spreadsheet/data grid support
+  - Image generation and display
+  - Text document editing with version control
 - [shadcn/ui](https://ui.shadcn.com)
   - Styling with [Tailwind CSS](https://tailwindcss.com)
   - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
@@ -33,6 +39,9 @@
   - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
 - [Auth.js](https://authjs.dev)
   - Simple and secure authentication
+  - Google OAuth integration
+  - Email/password authentication
+  - Guest user support
 
 ## Model Providers
 
@@ -68,3 +77,22 @@ pnpm dev
 ```
 
 Your app template should now be running on [localhost:3000](http://localhost:3000).
+
+## Setting up Google OAuth
+
+To enable Google Sign-In:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create a new project or select an existing one
+3. Navigate to "Credentials" and click "Create Credentials" → "OAuth 2.0 Client ID"
+4. Configure the OAuth consent screen if you haven't already
+5. For Application type, select "Web application"
+6. Add authorized redirect URIs:
+   - For local development: `http://localhost:3000/api/auth/callback/google`
+   - For production: `https://yourdomain.com/api/auth/callback/google`
+7. Copy the Client ID and Client Secret
+8. Add them to your `.env.local` file:
+   ```
+   GOOGLE_CLIENT_ID=your_client_id_here
+   GOOGLE_CLIENT_SECRET=your_client_secret_here
+   ```
