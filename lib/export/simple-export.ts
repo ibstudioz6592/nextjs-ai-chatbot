@@ -1,0 +1,351 @@
+// Simple Export Functions with AJ STUDIOZ Branding - Client-side only
+'use client';
+
+export type ExportOptions = {
+  title: string;
+  content: string;
+  author?: string;
+  date?: Date;
+};
+
+// Export as PDF using jsPDF
+export async function exportToPDF(options: ExportOptions): Promise<void> {
+  try {
+    const { jsPDF } = await import('jspdf');
+    const { title, content, date = new Date() } = options;
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - 2 * margin;
+    let yPosition = margin;
+
+    // Header with AJ STUDIOZ branding and logo
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    // Logo (stylized "AJ" in a box)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(margin - 2, 8, 20, 20, 2, 2, 'F');
+    doc.setTextColor(37, 99, 235);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AJ', margin + 3, 21);
+    
+    // Brand name
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AJ STUDIOZ', margin + 25, 18);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Student Learning Platform', margin + 25, 25);
+    
+    yPosition = 40;
+
+    // Document Title
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    const titleLines = doc.splitTextToSize(title, contentWidth);
+    doc.text(titleLines, margin, yPosition);
+    yPosition += titleLines.length * 8 + 5;
+
+    // Date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, margin, yPosition);
+    yPosition += 10;
+
+    // Separator line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Content
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    const lines = content.split('\n');
+    
+    for (const line of lines) {
+      if (yPosition > pageHeight - 30) {
+        addPDFFooter(doc, pageWidth, pageHeight);
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      if (line.trim() === '') {
+        yPosition += 5;
+        continue;
+      }
+
+      // Handle headers and formatting
+      if (line.startsWith('# ')) {
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        const text = line.substring(2).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
+        const textLines = doc.splitTextToSize(text, contentWidth);
+        doc.text(textLines, margin, yPosition);
+        yPosition += textLines.length * 8 + 3;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+      } else if (line.startsWith('## ')) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        const text = line.substring(3).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
+        const textLines = doc.splitTextToSize(text, contentWidth);
+        doc.text(textLines, margin, yPosition);
+        yPosition += textLines.length * 7 + 2;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+      } else if (line.startsWith('### ')) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        const text = line.substring(4).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
+        const textLines = doc.splitTextToSize(text, contentWidth);
+        doc.text(textLines, margin, yPosition);
+        yPosition += textLines.length * 6 + 2;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+      } else if (line.startsWith('- ') || line.startsWith('* ')) {
+        const text = `• ${line.substring(2)}`;
+        const textLines = doc.splitTextToSize(text, contentWidth - 5);
+        doc.text(textLines, margin + 5, yPosition);
+        yPosition += textLines.length * 6;
+      } else {
+        const textLines = doc.splitTextToSize(line, contentWidth);
+        doc.text(textLines, margin, yPosition);
+        yPosition += textLines.length * 6;
+      }
+    }
+
+    addPDFFooter(doc, pageWidth, pageHeight);
+
+    const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.pdf`;
+    doc.save(filename);
+  } catch (error) {
+    console.error('PDF export failed:', error);
+    throw new Error('Failed to export PDF. Please try again.');
+  }
+}
+
+function addPDFFooter(doc: any, pageWidth: number, pageHeight: number): void {
+  const footerY = pageHeight - 15;
+  
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Generated by AJ STUDIOZ - Student Learning Platform', pageWidth / 2, footerY, { align: 'center' });
+  
+  doc.setFont('helvetica', 'normal');
+  const pageNum = doc.getCurrentPageInfo().pageNumber;
+  doc.text(`Page ${pageNum}`, pageWidth - 20, footerY, { align: 'right' });
+}
+
+// Export as Word (HTML-based .doc format)
+export function exportToWord(options: ExportOptions): void {
+  const { title, content, date = new Date() } = options;
+  
+  // Convert markdown to HTML
+  const htmlContent = markdownToHTML(content);
+  
+  // Create HTML document with Word-compatible formatting
+  const wordHTML = `
+    <!DOCTYPE html>
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset='utf-8'>
+      <title>${title}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 2cm;
+        }
+        body {
+          font-family: 'Calibri', sans-serif;
+          font-size: 11pt;
+          line-height: 1.6;
+        }
+        .header {
+          background: linear-gradient(135deg, #2563EB 0%, #1e40af 100%);
+          color: white;
+          padding: 25px 20px;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 8px;
+        }
+        .logo {
+          background-color: white;
+          color: #2563EB;
+          width: 50px;
+          height: 50px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20pt;
+          font-weight: bold;
+          border-radius: 8px;
+          flex-shrink: 0;
+        }
+        .brand-info {
+          flex-grow: 1;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 24pt;
+          font-weight: bold;
+        }
+        .header p {
+          margin: 5px 0 0 0;
+          font-size: 10pt;
+          opacity: 0.9;
+        }
+        .title {
+          font-size: 18pt;
+          font-weight: bold;
+          margin: 20px 0 10px 0;
+        }
+        .date {
+          color: #666;
+          font-size: 10pt;
+          font-style: italic;
+          margin-bottom: 20px;
+        }
+        .content {
+          margin: 20px 0;
+        }
+        h1 {
+          font-size: 16pt;
+          font-weight: bold;
+          margin: 15px 0 10px 0;
+          color: #333;
+        }
+        h2 {
+          font-size: 14pt;
+          font-weight: bold;
+          margin: 12px 0 8px 0;
+          color: #444;
+        }
+        h3 {
+          font-size: 12pt;
+          font-weight: bold;
+          margin: 10px 0 6px 0;
+          color: #555;
+        }
+        ul, ol {
+          margin: 10px 0;
+          padding-left: 30px;
+        }
+        li {
+          margin: 5px 0;
+        }
+        p {
+          margin: 8px 0;
+        }
+        .footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #ccc;
+          text-align: center;
+          color: #999;
+          font-size: 9pt;
+          font-style: italic;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="logo">AJ</div>
+        <div class="brand-info">
+          <h1>AJ STUDIOZ</h1>
+          <p>Student Learning Platform</p>
+        </div>
+      </div>
+      <div class="title">${title}</div>
+      <div class="date">Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
+      <hr>
+      <div class="content">
+        ${htmlContent}
+      </div>
+      <div class="footer">
+        Generated by AJ STUDIOZ - Student Learning Platform
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Create blob and download
+  const blob = new Blob(['\ufeff', wordHTML], {
+    type: 'application/msword'
+  });
+  
+  const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.doc`;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// Simple markdown to HTML converter
+function markdownToHTML(markdown: string): string {
+  let html = markdown;
+  
+  // Remove emojis for cleaner Word output
+  html = html.replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '');
+  
+  // Headers
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Italic
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Code
+  html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+  
+  // Lists
+  const lines = html.split('\n');
+  let inList = false;
+  const processedLines: string[] = [];
+  
+  for (const line of lines) {
+    if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+      if (!inList) {
+        processedLines.push('<ul>');
+        inList = true;
+      }
+      processedLines.push(`<li>${line.trim().substring(2)}</li>`);
+    } else {
+      if (inList) {
+        processedLines.push('</ul>');
+        inList = false;
+      }
+      if (line.trim()) {
+        processedLines.push(`<p>${line}</p>`);
+      }
+    }
+  }
+  
+  if (inList) {
+    processedLines.push('</ul>');
+  }
+  
+  return processedLines.join('\n');
+}

@@ -205,6 +205,15 @@
   html {
     overflow-x: hidden;
   }
+
+  /* Mobile input optimization */
+  @media (max-width: 768px) {
+    textarea {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+    }
+  }
 }
 
 .skeleton {

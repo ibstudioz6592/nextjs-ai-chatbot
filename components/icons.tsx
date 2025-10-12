@@ -1211,3 +1211,20 @@ export const WarningIcon = ({ size = 16 }: { size?: number }) => {
     </svg>
   );
 };
+
+export const FileTextIcon = ({ size = 16 }: { size?: number}) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M13.5 3.5h-11v9h11v-9zm-11-1.5h11c.8284 0 1.5.67157 1.5 1.5v9c0 .8284-.6716 1.5-1.5 1.5h-11c-.82843 0-1.5-.6716-1.5-1.5v-9c0-.82843.67157-1.5 1.5-1.5zm2 3.5h6v1h-6v-1zm0 2.5h6v1h-6v-1zm0 2.5h4v1h-4v-1z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);

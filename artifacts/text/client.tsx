@@ -9,10 +9,13 @@ import {
   PenIcon,
   RedoIcon,
   UndoIcon,
+  FileTextIcon,
+  DownloadIcon,
 } from "@/components/icons";
 import { Editor } from "@/components/text-editor";
 import type { Suggestion } from "@/lib/db/schema";
 import { getSuggestions } from "../actions";
+import { exportToPDF, exportToWord } from "@/lib/export/simple-export";
 
 type TextArtifactMetadata = {
   suggestions: Suggestion[];
@@ -141,6 +144,34 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       onClick: ({ content }) => {
         navigator.clipboard.writeText(content);
         toast.success("Copied to clipboard!");
+      },
+    },
+    {
+      icon: <DownloadIcon size={18} />,
+      label: "PDF",
+      description: "Export as PDF with AJ STUDIOZ branding",
+      onClick: async ({ content }) => {
+        try {
+          const title = "Student Document";
+          await exportToPDF({ title, content });
+          toast.success("PDF exported successfully!");
+        } catch (error) {
+          toast.error("Failed to export PDF");
+        }
+      },
+    },
+    {
+      icon: <FileTextIcon size={18} />,
+      label: "Word",
+      description: "Export as Word document with AJ STUDIOZ branding",
+      onClick: ({ content }) => {
+        try {
+          const title = "Student Document";
+          exportToWord({ title, content });
+          toast.success("Word document exported successfully!");
+        } catch (error) {
+          toast.error("Failed to export Word document");
+        }
       },
     },
   ],

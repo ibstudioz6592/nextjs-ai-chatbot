@@ -20,7 +20,7 @@ export const chatModels: ChatModel[] = [
   },
   {
     id: 'chat-model-reasoning',
-    name: 'Lynxa Reasoning',
-    description: '🧠 Fast detailed analysis with artifacts - Shows thinking process, perfect for learning and problem-solving',
+    name: 'Lynxa Student Pro',
+    description: '🎓 Advanced student assistant - Upload PDFs, docs, images for analysis. Export to PDF/Word with branding. Perfect for learning!',
   },
 ];

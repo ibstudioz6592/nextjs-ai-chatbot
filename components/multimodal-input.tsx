@@ -312,7 +312,6 @@ function PureMultimodalInput({
           <PromptInputTools className="gap-0.5 sm:gap-1 md:gap-1.5">
             <AttachmentsButton
               fileInputRef={fileInputRef}
-              selectedModelId={selectedModelId}
               status={status}
             />
             <ModelSelectorCompact
@@ -364,19 +363,18 @@ export const MultimodalInput = memo(
 function PureAttachmentsButton({
   fileInputRef,
   status,
-  selectedModelId,
 }: {
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   status: UseChatHelpers<ChatMessage>["status"];
-  selectedModelId: string;
 }) {
-  const isReasoningModel = selectedModelId === "chat-model-reasoning";
+  // Enable file uploads for all models including reasoning/student mode
+  const isDisabled = status !== "ready";
 
   return (
     <Button
       className="aspect-square h-8 rounded-xl p-1.5 transition-all duration-200 hover:scale-105 hover:bg-accent/80 sm:h-9 sm:p-2"
       data-testid="attachments-button"
-      disabled={status !== "ready" || isReasoningModel}
+      disabled={isDisabled}
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();
