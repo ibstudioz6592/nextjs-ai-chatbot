@@ -64,14 +64,14 @@ const PurePreviewMessage = ({
       initial={{ opacity: 0 }}
     >
       <div
-        className={cn("flex w-full items-start gap-2 md:gap-3", {
+        className={cn("flex w-full items-start gap-1.5 sm:gap-2 md:gap-3", {
           "justify-end": message.role === "user" && mode !== "edit",
           "justify-start": message.role === "assistant",
         })}
       >
         {message.role === "assistant" && (
           <motion.div 
-            className="-mt-1 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900"
+            className="-mt-1 flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-1 sm:size-8 sm:ring-offset-2 dark:ring-offset-zinc-900"
             animate={isLoading ? {
               boxShadow: [
                 "0 0 0 0 rgba(59, 130, 246, 0.4)",
@@ -99,22 +99,22 @@ const PurePreviewMessage = ({
               <Image
                 src="/logo.jpg"
                 alt="AI Avatar"
-                width={32}
-                height={32}
-                className="object-cover"
+                width={28}
+                height={28}
+                className="object-cover sm:h-8 sm:w-8"
               />
             </motion.div>
           </motion.div>
         )}
 
         {message.role === "user" && session?.user && (
-          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900 order-2">
+          <div className="order-2 -mt-1 flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-1 sm:size-8 sm:ring-offset-2 dark:ring-offset-zinc-900">
             <Image
               src={session.user.image || `https://avatar.vercel.sh/${session.user.email}`}
               alt="User Avatar"
-              width={32}
-              height={32}
-              className="object-cover rounded-full"
+              width={28}
+              height={28}
+              className="rounded-full object-cover sm:h-8 sm:w-8"
             />
           </div>
         )}
@@ -173,9 +173,9 @@ const PurePreviewMessage = ({
                   <div key={key}>
                     <MessageContent
                       className={cn({
-                        "w-fit break-words rounded-2xl px-3 py-2 text-right text-white":
+                        "w-fit break-words rounded-2xl px-2.5 py-1.5 text-right text-sm text-white sm:px-3 sm:py-2 sm:text-base":
                           message.role === "user",
-                        "bg-transparent px-0 py-0 text-left":
+                        "bg-transparent px-0 py-0 text-left text-sm sm:text-base":
                           message.role === "assistant",
                       })}
                       data-testid="message-content"

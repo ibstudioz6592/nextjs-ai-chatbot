@@ -69,9 +69,9 @@ export function SidebarUserNav({ user }: { user: User }) {
               >
                 <Image
                   alt={user.email ?? "User Avatar"}
-                  className="rounded-full"
+                  className="rounded-full object-cover"
                   height={24}
-                  src={`https://avatar.vercel.sh/${user.email}`}
+                  src={user.image || `https://avatar.vercel.sh/${user.email}`}
                   width={24}
                 />
                 <span className="truncate" data-testid="user-email">
@@ -89,10 +89,10 @@ export function SidebarUserNav({ user }: { user: User }) {
           >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
+                <p className="leading-none text-sm font-medium">
                   {isGuest ? "Guest" : user?.email}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground">
+                <p className="leading-none text-xs text-muted-foreground">
                   {isGuest ? "Sign in to save your chats" : "Manage your account"}
                 </p>
               </div>

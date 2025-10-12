@@ -52,17 +52,17 @@ export function ModelSelector({
         )}
       >
         <Button
-          className="md:h-[34px] md:px-2"
+          className="h-7 px-1.5 text-xs sm:h-8 sm:px-2 sm:text-sm md:h-[34px] md:px-2"
           data-testid="model-selector"
           variant="outline"
         >
-          {selectedChatModel?.name}
-          <ChevronDownIcon />
+          <span className="truncate">{selectedChatModel?.name}</span>
+          <ChevronDownIcon size={14} className="sm:h-4 sm:w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="min-w-[280px] max-w-[90vw] sm:min-w-[300px]"
+        className="max-w-[90vw] min-w-[240px] sm:min-w-[280px] md:min-w-[300px]"
       >
         {availableChatModels.map((chatModel) => {
           const { id } = chatModel;
@@ -83,12 +83,12 @@ export function ModelSelector({
               }}
             >
               <button
-                className="group/item flex w-full flex-row items-center justify-between gap-2 sm:gap-4"
+                className="group/item flex w-full flex-row items-center justify-between gap-1.5 sm:gap-2 md:gap-4"
                 type="button"
               >
-                <div className="flex flex-col items-start gap-1">
-                  <div className="text-sm sm:text-base">{chatModel.name}</div>
-                  <div className="line-clamp-2 text-muted-foreground text-xs">
+                <div className="flex flex-col items-start gap-0.5 sm:gap-1">
+                  <div className="text-xs font-medium sm:text-sm md:text-base">{chatModel.name}</div>
+                  <div className="line-clamp-2 text-[10px] text-muted-foreground sm:text-xs">
                     {chatModel.description}
                   </div>
                 </div>

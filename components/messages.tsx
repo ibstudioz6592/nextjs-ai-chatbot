@@ -88,17 +88,17 @@ function PureMessages({
       ref={messagesContainerRef}
       style={{ overflowAnchor: "none" }}
     >
-      <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6">
-        <ConversationContent className="flex flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
+      <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-3 sm:gap-4 md:gap-6">
+        <ConversationContent className="flex flex-col gap-3 px-2 py-3 sm:gap-4 sm:py-4 md:gap-6 md:px-4">
           {messages.length === 0 && <Greeting />}
           
           {/* AJ STUDIOZ Branding with Logo */}
-          <div className="flex justify-center items-center py-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center py-1.5 text-xs text-muted-foreground sm:py-2 sm:text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <img 
                 src="https://z-cdn-media.chatglm.cn/files/797f27fe-c65b-4e25-91cd-3e0c6688287e_aj%20logo.jpg?auth_key=1791563173-34991f6fcb414a528e5e52039239c636-0-de0ec96ab994aea2993ad06289321950"
                 alt="AJ STUDIOZ Logo"
-                className="h-6 w-6 rounded"
+                className="h-5 w-5 rounded sm:h-6 sm:w-6"
               />
               <span>Powered by <span className="font-semibold">AJ STUDIOZ</span></span>
             </div>
@@ -141,11 +141,11 @@ function PureMessages({
       {!isAtBottom && (
         <button
           aria-label="Scroll to bottom"
-          className="-translate-x-1/2 absolute bottom-40 left-1/2 z-10 rounded-full border bg-background p-2 shadow-lg transition-colors hover:bg-muted"
+          className="absolute bottom-32 left-1/2 z-10 -translate-x-1/2 rounded-full border bg-background p-1.5 shadow-lg transition-colors hover:bg-muted sm:bottom-40 sm:p-2"
           onClick={() => scrollToBottom("smooth")}
           type="button"
         >
-          <ArrowDownIcon className="size-4" />
+          <ArrowDownIcon className="size-3.5 sm:size-4" />
         </button>
       )}
     </div>
