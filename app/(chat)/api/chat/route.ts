@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText } from "ai";
+import { convertToModelMessages, streamText, createDataStreamResponse } from "ai";
 import { auth } from "@/app/(auth)/auth";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { model } from "@/lib/ai/providers";
@@ -49,43 +49,47 @@ export async function POST(request: Request) {
   const existingUIMessages = convertToUIMessages(existingMessages);
   const allMessages = [...existingUIMessages, message];
 
-  const result = streamText({
-    model: model.languageModel(selectedChatModel),
-    system:
-      "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
-    messages: convertToModelMessages(allMessages),
-    tools: async ({ dataStream }) => ({
-      getWeather,
-      createDocument: createDocument({ session, dataStream }),
-      updateDocument: updateDocument({ session, dataStream }),
-      requestSuggestions: requestSuggestions({ session, dataStream }),
-    }),
-    onFinish: async ({ text }) => {
-      if (session.user?.id && text) {
-        try {
-          const assistantMessage = createMessage({
-            chatId: id,
-            role: "assistant",
-            content: {
-              id: generateUUID(),
-              role: "assistant",
-              parts: [{ type: "text", text }],
-              attachments: [],
-              createdAt: new Date().toISOString(),
-            } as any,
-          });
+  return createDataStreamResponse({
+    execute: (dataStream) => {
+      const result = streamText({
+        model: model.languageModel(selectedChatModel),
+        system:
+          "You are a helpful AI assistant developed by AJ STUDIOZ. You are friendly, concise, and helpful. Always provide accurate and useful information. When users ask you to create code, documents, spreadsheets, or other content, use the appropriate tools to generate artifacts that they can interact with.",
+        messages: convertToModelMessages(allMessages),
+        tools: {
+          getWeather,
+          createDocument: createDocument({ session, dataStream }),
+          updateDocument: updateDocument({ session, dataStream }),
+          requestSuggestions: requestSuggestions({ session, dataStream }),
+        },
+        onFinish: async ({ text }) => {
+          if (session.user?.id && text) {
+            try {
+              const assistantMessage = createMessage({
+                chatId: id,
+                role: "assistant",
+                content: {
+                  id: generateUUID(),
+                  role: "assistant",
+                  parts: [{ type: "text", text }],
+                  attachments: [],
+                  createdAt: new Date().toISOString(),
+                } as any,
+              });
 
-          await saveMessages({ messages: [assistantMessage] });
-        } catch (error) {
-          console.error("Failed to save assistant message:", error);
-        }
-      }
-    },
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "stream-text",
+              await saveMessages({ messages: [assistantMessage] });
+            } catch (error) {
+              console.error("Failed to save assistant message:", error);
+            }
+          }
+        },
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: "stream-text",
+        },
+      });
+
+      result.mergeIntoDataStream(dataStream);
     },
   });
-
-  return result.toDataStreamResponse();
 }
