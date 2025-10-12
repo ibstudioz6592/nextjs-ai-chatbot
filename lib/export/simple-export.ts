@@ -22,52 +22,80 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const contentWidth = pageWidth - 2 * margin;
-    let yPosition = margin;
+    
+    // Perplexity-style sidebar branding
+    const sidebarWidth = 50;
+    const contentMargin = sidebarWidth + 15;
+    const contentWidth = pageWidth - contentMargin - 15;
+    let yPosition = 20;
 
-    // Header with AJ STUDIOZ branding and logo
-    doc.setFillColor(37, 99, 235);
-    doc.rect(0, 0, pageWidth, 35, 'F');
+    // Add sidebar to all pages
+    const addSidebarBranding = (pageNum: number) => {
+      // Sidebar background with gradient effect
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+      
+      // Accent line
+      doc.setFillColor(59, 130, 246);
+      doc.rect(sidebarWidth - 2, 0, 2, pageHeight, 'F');
+      
+      // Logo at top of sidebar
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(10, 15, 30, 30, 3, 3, 'F');
+      doc.setTextColor(37, 99, 235);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AJ', 18, 35);
+      
+      // Brand text (vertical)
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      
+      // Rotate text for sidebar
+      doc.saveGraphicsState();
+      doc.setTextColor(255, 255, 255);
+      doc.text('AJ STUDIOZ', 15, pageHeight / 2, { angle: 90 });
+      doc.restoreGraphicsState();
+      
+      // Page number in sidebar
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.text(String(pageNum), 20, pageHeight - 20, { align: 'center' });
+      
+      // Decorative elements
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.line(10, 55, 40, 55);
+      doc.line(10, pageHeight - 35, 40, pageHeight - 35);
+    };
+
+    // Add sidebar to first page
+    addSidebarBranding(1);
     
-    // Logo (stylized "AJ" in a box)
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(margin - 2, 8, 20, 20, 2, 2, 'F');
-    doc.setTextColor(37, 99, 235);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AJ', margin + 3, 21);
-    
-    // Brand name
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AJ STUDIOZ', margin + 25, 18);
-    
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Student Learning Platform', margin + 25, 25);
-    
-    yPosition = 40;
+    // Header title area
+    doc.setFillColor(248, 250, 252);
+    doc.rect(sidebarWidth, 0, pageWidth - sidebarWidth, 50, 'F');
 
     // Document Title
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     const titleLines = doc.splitTextToSize(title, contentWidth);
-    doc.text(titleLines, margin, yPosition);
+    doc.text(titleLines, contentMargin, yPosition);
     yPosition += titleLines.length * 8 + 5;
 
     // Date
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text(`Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, margin, yPosition);
+    doc.text(`Generated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, contentMargin, yPosition);
     yPosition += 10;
 
     // Separator line
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    doc.line(contentMargin, yPosition, pageWidth - 15, yPosition);
     yPosition += 10;
 
     // Content
@@ -77,11 +105,14 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
     
     const lines = content.split('\n');
     
+    let pageNum = 1;
+    
     for (const line of lines) {
       if (yPosition > pageHeight - 30) {
-        addPDFFooter(doc, pageWidth, pageHeight);
         doc.addPage();
-        yPosition = margin;
+        pageNum++;
+        addSidebarBranding(pageNum);
+        yPosition = 20;
       }
 
       if (line.trim() === '') {
@@ -95,7 +126,7 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(2).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, margin, yPosition);
+        doc.text(textLines, contentMargin, yPosition);
         yPosition += textLines.length * 8 + 3;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
@@ -104,7 +135,7 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(3).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, margin, yPosition);
+        doc.text(textLines, contentMargin, yPosition);
         yPosition += textLines.length * 7 + 2;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
@@ -113,23 +144,27 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
         doc.setFont('helvetica', 'bold');
         const text = line.substring(4).replace(/[🎯📝🔍💡📊⚡✅🎓💻🚀⭐]/gu, '').trim();
         const textLines = doc.splitTextToSize(text, contentWidth);
-        doc.text(textLines, margin, yPosition);
+        doc.text(textLines, contentMargin, yPosition);
         yPosition += textLines.length * 6 + 2;
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
       } else if (line.startsWith('- ') || line.startsWith('* ')) {
         const text = `• ${line.substring(2)}`;
         const textLines = doc.splitTextToSize(text, contentWidth - 5);
-        doc.text(textLines, margin + 5, yPosition);
+        doc.text(textLines, contentMargin + 5, yPosition);
         yPosition += textLines.length * 6;
       } else {
         const textLines = doc.splitTextToSize(line, contentWidth);
-        doc.text(textLines, margin, yPosition);
+        doc.text(textLines, contentMargin, yPosition);
         yPosition += textLines.length * 6;
       }
     }
 
-    addPDFFooter(doc, pageWidth, pageHeight);
+    // Footer branding text at bottom
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Generated by AJ STUDIOZ - Student Learning Platform', pageWidth / 2, pageHeight - 10, { align: 'center' });
 
     const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.pdf`;
     doc.save(filename);
@@ -137,19 +172,6 @@ export async function exportToPDF(options: ExportOptions): Promise<void> {
     console.error('PDF export failed:', error);
     throw new Error('Failed to export PDF. Please try again.');
   }
-}
-
-function addPDFFooter(doc: any, pageWidth: number, pageHeight: number): void {
-  const footerY = pageHeight - 15;
-  
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  doc.setFont('helvetica', 'italic');
-  doc.text('Generated by AJ STUDIOZ - Student Learning Platform', pageWidth / 2, footerY, { align: 'center' });
-  
-  doc.setFont('helvetica', 'normal');
-  const pageNum = doc.getCurrentPageInfo().pageNumber;
-  doc.text(`Page ${pageNum}`, pageWidth - 20, footerY, { align: 'right' });
 }
 
 // Export as Word (HTML-based .doc format)
