@@ -8,47 +8,48 @@ import {
 
 // Server-side only: Get API key with rotation support
 const getGroqProvider = () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('Groq provider should only be used on server-side');
+  }
+  
   // Dynamically import rotation module on server-side
   const { getGroqApiKey } = require("./groq-key-rotation");
   const apiKey = getGroqApiKey();
   return createGroq({ apiKey });
 };
 
-// Lazy initialization - only create models when needed (server-side)
-let cachedGroqProvider: ReturnType<typeof createGroq> | null = null;
-const getGroqModel = (modelName: string) => {
+// Create a wrapper that gets a fresh provider with rotated key for each model call
+const createRotatingGroqModel = (modelName: string) => {
   if (typeof window !== 'undefined') {
-    // This should never be called on client-side, but return a dummy to prevent crashes
-    throw new Error('getGroqModel should only be called on server-side');
+    throw new Error('Model creation should only happen on server-side');
   }
   
-  if (!cachedGroqProvider) {
-    cachedGroqProvider = getGroqProvider();
-  }
-  return cachedGroqProvider(modelName);
+  // Get a fresh provider with rotated API key
+  const provider = getGroqProvider();
+  return provider(modelName);
 };
 
 // Initialize models - safe for both client and server
 const languageModels = typeof window === 'undefined' 
   ? {
-      "chat-model-lite": getGroqModel("llama-3.1-8b-instant"),
-      "chat-model": getGroqModel("llama-3.3-70b-versatile"),
+      "chat-model-lite": createRotatingGroqModel("llama-3.1-8b-instant"),
+      "chat-model": createRotatingGroqModel("llama-3.3-70b-versatile"),
       "chat-model-reasoning": wrapLanguageModel({
         middleware: extractReasoningMiddleware({
           tagName: "think",
         }),
-        model: getGroqModel("deepseek-r1-distill-llama-70b"),
+        model: createRotatingGroqModel("deepseek-r1-distill-llama-70b"),
       }),
-      "llama-3.1-8b-instant": getGroqModel("llama-3.1-8b-instant"),
+      "llama-3.1-8b-instant": createRotatingGroqModel("llama-3.1-8b-instant"),
       "deepseek-r1-distill-llama-70b": wrapLanguageModel({
         middleware: extractReasoningMiddleware({
           tagName: "think",
         }),
-        model: getGroqModel("deepseek-r1-distill-llama-70b"),
+        model: createRotatingGroqModel("deepseek-r1-distill-llama-70b"),
       }),
-      "llama-3.3-70b-versatile": getGroqModel("llama-3.3-70b-versatile"),
-      "title-model": getGroqModel("llama-3.1-8b-instant"),
-      "artifact-model": getGroqModel("llama-3.3-70b-versatile"),
+      "llama-3.3-70b-versatile": createRotatingGroqModel("llama-3.3-70b-versatile"),
+      "title-model": createRotatingGroqModel("llama-3.1-8b-instant"),
+      "artifact-model": createRotatingGroqModel("llama-3.3-70b-versatile"),
     }
   : {} as any; // Client-side gets empty object with type assertion
 
