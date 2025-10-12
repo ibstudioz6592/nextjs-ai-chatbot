@@ -3,7 +3,14 @@
  * 
  * This module provides automatic rotation of Groq API keys to avoid rate limits.
  * Add multiple GROQ_API_KEY_* environment variables to enable rotation.
+ * 
+ * IMPORTANT: This module should only be used on the server-side.
  */
+
+// Only run on server-side
+if (typeof window !== 'undefined') {
+  throw new Error('groq-key-rotation.ts should only be imported on the server-side');
+}
 
 // Collect all available Groq API keys from environment variables
 const groqApiKeys = [
