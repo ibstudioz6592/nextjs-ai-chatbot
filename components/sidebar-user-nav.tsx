@@ -1,6 +1,17 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
+import { 
+  ChevronUp, 
+  Settings, 
+  MessageSquare, 
+  CheckSquare, 
+  FileText, 
+  HelpCircle, 
+  GitBranch, 
+  Share2, 
+  Crown,
+  LogOut
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
@@ -12,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
@@ -66,10 +78,91 @@ export function SidebarUserNav({ user }: { user: User }) {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-popper-anchor-width)"
+            className="w-56"
             data-testid="user-nav-menu"
             side="top"
+            align="end"
           >
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {isGuest ? "Guest" : user?.email}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {isGuest ? "Sign in to save your chats" : "Manage your account"}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Settings coming soon!" })}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Report issue feature coming soon!" })}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              <span>Report Issue</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Tasks feature coming soon!" })}
+            >
+              <CheckSquare className="mr-2 h-4 w-4" />
+              <span>Tasks</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Files feature coming soon!" })}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Files</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "FAQ coming soon!" })}
+            >
+              <HelpCircle className="mr-2 h-4 w-4" />
+              <span>FAQ</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Changelog coming soon!" })}
+            >
+              <GitBranch className="mr-2 h-4 w-4" />
+              <span>Changelog</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Shared links feature coming soon!" })}
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              <span>Shared Links</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => toast({ type: "info", description: "Upgrade plans coming soon!" })}
+            >
+              <Crown className="mr-2 h-4 w-4 text-yellow-500" />
+              <span>Upgrade Plan</span>
+            </DropdownMenuItem>
+            
             <DropdownMenuItem
               className="cursor-pointer"
               data-testid="user-nav-item-theme"
@@ -79,7 +172,9 @@ export function SidebarUserNav({ user }: { user: User }) {
             >
               {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
             </DropdownMenuItem>
+            
             <DropdownMenuSeparator />
+            
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
               <button
                 className="w-full cursor-pointer"
@@ -104,6 +199,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 }}
                 type="button"
               >
+                <LogOut className="mr-2 h-4 w-4" />
                 {isGuest ? "Login to your account" : "Sign out"}
               </button>
             </DropdownMenuItem>
