@@ -44,6 +44,7 @@ function PureMessages({
 
   useDataStream();
 
+  // Auto-scroll when status changes
   useEffect(() => {
     if (status === "submitted") {
       requestAnimationFrame(() => {
@@ -55,6 +56,29 @@ function PureMessages({
           });
         }
       });
+    }
+  }, [status, messagesContainerRef]);
+
+  // Auto-scroll during streaming
+  useEffect(() => {
+    if (status === "streaming") {
+      const container = messagesContainerRef.current;
+      if (!container) return;
+
+      const scrollInterval = setInterval(() => {
+        // Only auto-scroll if user is near the bottom
+        const isNearBottom = 
+          container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        
+        if (isNearBottom) {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 100); // Check every 100ms
+
+      return () => clearInterval(scrollInterval);
     }
   }, [status, messagesContainerRef]);
 

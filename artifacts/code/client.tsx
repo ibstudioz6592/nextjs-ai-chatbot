@@ -1,3 +1,4 @@
+import { EyeIcon } from "lucide-react";
 import { toast } from "sonner";
 import { CodeEditor } from "@/components/code-editor";
 import {
@@ -64,6 +65,7 @@ function detectRequiredHandlers(code: string): string[] {
 
 type Metadata = {
   outputs: ConsoleOutput[];
+  showPreview: boolean;
 };
 
 export const codeArtifact = new Artifact<"code", Metadata>({
@@ -73,6 +75,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   initialize: ({ setMetadata }) => {
     setMetadata({
       outputs: [],
+      showPreview: false,
     });
   },
   onStreamPart: ({ streamPart, setArtifact }) => {
@@ -90,14 +93,28 @@ export const codeArtifact = new Artifact<"code", Metadata>({
       }));
     }
   },
-  content: ({ metadata, setMetadata, ...props }) => {
+  content: ({ metadata, setMetadata, content, ...props }) => {
+    const isHTML = content.trim().toLowerCase().startsWith("<!doctype html") || 
+                   content.trim().toLowerCase().startsWith("<html");
+
     return (
       <>
-        <div className="px-1">
-          <CodeEditor {...props} />
-        </div>
+        {metadata?.showPreview && isHTML ? (
+          <div className="h-full w-full">
+            <iframe
+              srcDoc={content}
+              className="h-full w-full border-0"
+              sandbox="allow-scripts allow-same-origin"
+              title="HTML Preview"
+            />
+          </div>
+        ) : (
+          <div className="px-1">
+            <CodeEditor content={content} {...props} />
+          </div>
+        )}
 
-        {metadata?.outputs && (
+        {metadata?.outputs && !metadata?.showPreview && (
           <Console
             consoleOutputs={metadata.outputs}
             setConsoleOutputs={() => {
@@ -113,9 +130,28 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   },
   actions: [
     {
+      icon: <EyeIcon size={18} />,
+      label: "Preview",
+      description: "Toggle HTML preview",
+      onClick: ({ content, metadata, setMetadata }) => {
+        const isHTML = content.trim().toLowerCase().startsWith("<!doctype html") || 
+                       content.trim().toLowerCase().startsWith("<html");
+        
+        if (!isHTML) {
+          toast.error("Preview is only available for HTML code");
+          return;
+        }
+
+        setMetadata({
+          ...metadata,
+          showPreview: !metadata.showPreview,
+        });
+      },
+    },
+    {
       icon: <PlayIcon size={18} />,
       label: "Run",
-      description: "Execute code",
+      description: "Execute Python code",
       onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: ConsoleOutputContent[] = [];
