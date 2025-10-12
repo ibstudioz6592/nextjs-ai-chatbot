@@ -97,7 +97,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Settings coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Settings coming soon!" })}
             >
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
@@ -105,7 +105,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Report issue feature coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Report issue feature coming soon!" })}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               <span>Report Issue</span>
@@ -113,7 +113,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Tasks feature coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Tasks feature coming soon!" })}
             >
               <CheckSquare className="mr-2 h-4 w-4" />
               <span>Tasks</span>
@@ -121,7 +121,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Files feature coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Files feature coming soon!" })}
             >
               <FileText className="mr-2 h-4 w-4" />
               <span>Files</span>
@@ -131,7 +131,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "FAQ coming soon!" })}
+              onClick={() => toast({ type: "success", description: "FAQ coming soon!" })}
             >
               <HelpCircle className="mr-2 h-4 w-4" />
               <span>FAQ</span>
@@ -139,7 +139,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Changelog coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Changelog coming soon!" })}
             >
               <GitBranch className="mr-2 h-4 w-4" />
               <span>Changelog</span>
@@ -147,7 +147,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Shared links feature coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Shared links feature coming soon!" })}
             >
               <Share2 className="mr-2 h-4 w-4" />
               <span>Shared Links</span>
@@ -157,7 +157,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => toast({ type: "info", description: "Upgrade plans coming soon!" })}
+              onClick={() => toast({ type: "success", description: "Upgrade plans coming soon!" })}
             >
               <Crown className="mr-2 h-4 w-4 text-yellow-500" />
               <span>Upgrade Plan</span>
