@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,16 +33,19 @@ import {
 } from "@/components/ui/sidebar";
 import { guestRegex } from "@/lib/constants";
 import { LoaderIcon } from "./icons";
+import { SettingsDialog } from "./settings-dialog";
 import { toast } from "./toast";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const router = useRouter();
   const { data, status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const isGuest = guestRegex.test(data?.user?.email ?? "");
 
   return (
+    <>
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
@@ -97,7 +101,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => router.push("/settings")}
+              onClick={() => setSettingsOpen(true)}
             >
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
@@ -207,5 +211,8 @@ export function SidebarUserNav({ user }: { user: User }) {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+    
+    <SettingsDialog user={user} open={settingsOpen} onOpenChange={setSettingsOpen} />
+    </>
   );
 }
