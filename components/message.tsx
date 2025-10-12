@@ -3,6 +3,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
@@ -46,6 +47,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding: boolean;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
+  const { data: session } = useSession();
 
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
@@ -103,6 +105,18 @@ const PurePreviewMessage = ({
               />
             </motion.div>
           </motion.div>
+        )}
+
+        {message.role === "user" && session?.user && (
+          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-zinc-900 order-2">
+            <Image
+              src={session.user.image || `https://avatar.vercel.sh/${session.user.email}`}
+              alt="User Avatar"
+              width={32}
+              height={32}
+              className="object-cover rounded-full"
+            />
+          </div>
         )}
 
         <div
