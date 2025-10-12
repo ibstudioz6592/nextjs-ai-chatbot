@@ -6,6 +6,13 @@ import Google from "next-auth/providers/google";
 import { DUMMY_PASSWORD } from "@/lib/constants";
 import { createGuestUser, getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { user as userTable } from "@/lib/db/schema";
+
+// biome-ignore lint: Forbidden non-null assertion.
+const client = postgres(process.env.POSTGRES_URL!);
+const db = drizzle(client);
 
 export type UserType = "guest" | "regular";
 
@@ -102,6 +109,25 @@ export const {
       }
 
       return session;
+    },
+    async signIn({ user, account }) {
+      // For Google OAuth, create user in database if they don't exist
+      if (account?.provider === "google" && user.email) {
+        try {
+          const existingUsers = await getUser(user.email);
+          if (existingUsers.length === 0) {
+            // Create new user for Google OAuth
+            await db.insert(userTable).values({
+              email: user.email,
+              password: null, // No password for OAuth users
+            });
+          }
+        } catch (error) {
+          console.error("Error creating Google OAuth user:", error);
+          return false;
+        }
+      }
+      return true;
     },
   },
 });

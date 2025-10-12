@@ -92,16 +92,22 @@ export async function POST(request: Request) {
     },
     generateId: generateUUID,
     onFinish: async ({ messages: responseMessages }) => {
-      await saveMessages({
-        messages: responseMessages.map((currentMessage) => ({
-          id: currentMessage.id,
-          role: currentMessage.role,
-          parts: currentMessage.parts,
-          createdAt: new Date(),
-          attachments: [],
-          chatId: id,
-        })),
-      });
+      try {
+        await saveMessages({
+          messages: responseMessages.map((currentMessage) => ({
+            id: currentMessage.id,
+            role: currentMessage.role,
+            parts: currentMessage.parts,
+            createdAt: new Date(),
+            attachments: [],
+            chatId: id,
+          })),
+        });
+        console.log(`✅ Saved ${responseMessages.length} messages for chat ${id}`);
+      } catch (error) {
+        console.error("❌ Error saving messages:", error);
+        // Continue even if message save fails - don't break the response
+      }
     },
     onError: () => {
       return "Oops, an error occurred!";
